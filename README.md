@@ -22,6 +22,12 @@ npm start
 
 After building, the server serves the production UI at http://127.0.0.1:3001.
 
+## Use the app
+
+**Discover** combines signals, company discovery and original sources. **Investigations** holds active and completed research; completed runs open on the findings. **Saved** holds theses you explicitly choose to follow.
+
+Real website icons identify company and source domains. Source history shows recorded agent assessments and interpretation corrections, never an invented publisher score or investment hit rate. The full multi-agent graph, source corrections and execution audit remain available within each investigation.
+
 ## Real research architecture
 
 Independent Claude Messages API calls form a bounded investigation graph:

@@ -21,6 +21,8 @@ import {
   type AgentRun,
 } from '../../shared/types';
 import { AgentConstellation } from './Visuals';
+import { DomainIdentity } from './Identity';
+import { sourceName } from '../lib/source-intelligence';
 import { readable, dateLabel, sourceCount, uniqueSources } from '../lib/api';
 
 function Findings({
@@ -35,22 +37,46 @@ function Findings({
   if (!run) return null;
   return (
     <div className="findings">
-      {run.output?.findings.map((finding, i) => (
-        <div key={i} className="finding">
-          <span className={`finding-kind ${finding.kind.toLowerCase()}`}>{finding.kind}</span>
-          {finding.evidenceIds.some(
-            (id) => evidence.find((source) => source.id === id)?.correction,
-          ) && <span className="badge rose">Cited evidence revised</span>}
-          <h4>{finding.title}</h4>
-          <p>{finding.detail}</p>
-          {finding.evidenceIds.length > 0 && (
-            <button className="citation-button" onClick={() => onEvidence(finding.evidenceIds)}>
-              ↗ Sources (
-              {sourceCount(evidence.filter((entry) => finding.evidenceIds.includes(entry.id)))})
-            </button>
-          )}
-        </div>
-      ))}
+      {run.output?.findings.map((finding, i) => {
+        const citedSources = uniqueSources(
+          evidence.filter((entry) => finding.evidenceIds.includes(entry.id)),
+        );
+        return (
+          <div key={i} className="finding">
+            <span className={`finding-kind ${finding.kind.toLowerCase()}`}>
+              {readable(finding.kind)}
+            </span>
+            {finding.evidenceIds.some(
+              (id) => evidence.find((source) => source.id === id)?.correction,
+            ) && <span className="badge rose">Evidence revised</span>}
+            <h4>{finding.title}</h4>
+            <p>{finding.detail}</p>
+            {citedSources.length > 0 && (
+              <div className="finding-source-identities">
+                {citedSources.slice(0, 2).map((source) => (
+                  <button
+                    className="finding-source"
+                    key={source.id}
+                    onClick={() => onEvidence([source.id])}
+                    title={source.title}
+                  >
+                    <DomainIdentity
+                      url={source.url}
+                      name={sourceName(source.url, source.publisher)}
+                      size={20}
+                    />
+                    <span>{sourceName(source.url, source.publisher)}</span>
+                  </button>
+                ))}
+                <button className="citation-button" onClick={() => onEvidence(finding.evidenceIds)}>
+                  {citedSources.length > 2 ? `+${citedSources.length - 2} · ` : ''}View sources{' '}
+                  <ArrowUpRight size={12} />
+                </button>
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -76,7 +102,9 @@ export default function InvestigationRoom({
   const [selected, setSelected] = useState<AgentId>(() =>
     investigation.status === 'completed' ? 'committee' : 'scout',
   );
-  const [tab, setTab] = useState<'workspace' | 'report'>('workspace');
+  const [tab, setTab] = useState<'workspace' | 'report'>(() =>
+    investigation.status === 'completed' ? 'report' : 'workspace',
+  );
   const run = investigation.agents.find((a) => a.id === selected);
   const agent = AGENTS.find((a) => a.id === selected)!;
   const completed = investigation.agents.filter((a) => a.status === 'completed').length;
@@ -85,6 +113,27 @@ export default function InvestigationRoom({
   const bull = investigation.agents.find((a) => a.id === 'bull');
   const bear = investigation.agents.find((a) => a.id === 'bear');
   const sample = investigation.mode === 'sample';
+  const sources = uniqueSources(investigation.evidence);
+  const publishers = Array.from(
+    new Map(sources.map((source) => [new URL(source.url).hostname, source])).values(),
+  );
+  const companies = investigation.company
+    ? [investigation.company]
+    : (investigation.agents.find((agent) => agent.id === 'hunter')?.output?.companies ?? []);
+  const correctedEvidenceIds = new Set(
+    investigation.evidence.filter((entry) => entry.correction).map((entry) => entry.id),
+  );
+  const knownFindings =
+    committee?.output?.findings.filter(
+      (finding) =>
+        finding.kind === 'FACT' &&
+        finding.evidenceIds.length > 0 &&
+        finding.evidenceIds.every((id) =>
+          investigation.evidence.some((entry) => entry.id === id && entry.status === 'SUPPORTED'),
+        ) &&
+        !finding.evidenceIds.some((id) => correctedEvidenceIds.has(id)),
+    ) ?? [];
+
   const verificationRounds = investigation.events.filter(
     (event) => event.type === 'agent_started' && event.agentId === 'verifier',
   ).length;
@@ -113,7 +162,7 @@ export default function InvestigationRoom({
           <ArrowLeft size={15} /> Investigations
         </button>
         <ChevronRight size={13} />
-        <span>Investigation room</span>
+        <span>{investigation.company?.name ?? 'Research findings'}</span>
       </div>
       <div className="room-title">
         <div>
@@ -125,10 +174,28 @@ export default function InvestigationRoom({
                 ? 'LIVE INVESTIGATION'
                 : 'RECORDED INVESTIGATION'}{' '}
             <span className="eyebrow-divider">/</span>{' '}
-            {sample ? 'EDITORIAL WALKTHROUGH' : investigation.id.slice(-8)}
+            {sample ? 'CURATED EXAMPLE' : dateLabel(investigation.createdAt)}
           </div>
           <h1>{investigation.title}</h1>
-          <p>{investigation.query}</p>
+          {investigation.query.trim().toLowerCase() !==
+            investigation.title.trim().toLowerCase() && <p>{investigation.query}</p>}
+          {companies.length > 0 && (
+            <div className="room-company-identities" aria-label="Companies researched">
+              {companies.map((company) => (
+                <a
+                  className="room-company-identity"
+                  key={company.id}
+                  href={company.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <DomainIdentity url={company.website} name={company.name} size={32} />
+                  <span>{company.name}</span>
+                  <ArrowUpRight size={13} />
+                </a>
+              ))}
+            </div>
+          )}
         </div>
         <div className="room-actions">
           {canChallenge && (
@@ -148,7 +215,7 @@ export default function InvestigationRoom({
             onClick={onWatch}
           >
             <Bookmark size={15} fill={investigation.watched ? 'currentColor' : 'none'} />
-            {investigation.watched ? 'Saved' : 'Watch thesis'}
+            {investigation.watched ? 'Saved' : 'Save research'}
           </button>
           <button
             className="button ghost"
@@ -219,17 +286,17 @@ export default function InvestigationRoom({
         </div>
       </div>
       <div className="tabs room-tabs">
+        <button className={tab === 'report' ? 'selected' : ''} onClick={() => setTab('report')}>
+          Findings{committee?.output && <span className="tiny-dot" />}
+        </button>
         <button
           className={tab === 'workspace' ? 'selected' : ''}
           onClick={() => setTab('workspace')}
         >
-          Agent workspace
-        </button>
-        <button className={tab === 'report' ? 'selected' : ''} onClick={() => setTab('report')}>
-          Investment memo{committee?.output && <span className="tiny-dot" />}
+          Research team
         </button>
         <button onClick={() => onEvidence()}>
-          Evidence library <span>{investigation.evidence.length}</span>
+          Sources <span>{sources.length}</span>
         </button>
       </div>
       {tab === 'workspace' ? (
@@ -273,11 +340,8 @@ export default function InvestigationRoom({
                 (run.inputTokens !== undefined ||
                   run.outputTokens !== undefined ||
                   run.searches !== undefined) && (
-                  <div
-                    className="execution-audit"
-                    title="Actual usage recorded from the research provider"
-                  >
-                    <span>CLAUDE EXECUTION AUDIT</span>
+                  <details className="execution-audit">
+                    <summary>Execution details · actual provider usage</summary>
                     <span>{run.model ?? investigation.model}</span>
                     <div>
                       {run.inputTokens !== undefined && (
@@ -296,7 +360,7 @@ export default function InvestigationRoom({
                         </span>
                       )}
                     </div>
-                  </div>
+                  </details>
                 )}
               {run?.output ? (
                 <>
@@ -315,7 +379,7 @@ export default function InvestigationRoom({
                       {run.output.companies.map((c) => (
                         <div className="agent-company" key={c.id}>
                           <a href={c.website} target="_blank" rel="noopener noreferrer">
-                            <span className="company-avatar">{c.name[0]}</span>
+                            <DomainIdentity url={c.website} name={c.name} size={36} />
                             <div>
                               <strong>{c.name}</strong>
                               <small>{c.category}</small>
@@ -396,123 +460,147 @@ export default function InvestigationRoom({
               )}
             </section>
           </div>
-          {!!investigation.reviewNotes?.length && (
-            <p className="muted text-xs">
-              Earlier debate and verification outputs are preserved below. The final committee
-              assessment supersedes claims qualified by the source-quality review.
-            </p>
-          )}
-          <div className="debate-grid">
-            <section className="panel argument bull">
-              <div className="panel-heading">
-                <h3>
-                  <span className="argument-icon">↗</span>The Bull
-                </h3>
-                <span className="badge green">Investment case</span>
-              </div>
-              <p>
-                {bull?.output?.summary ??
-                  'The investment case will be constructed from the research evidence.'}
+          <details className="research-history">
+            <summary>History · debate, verification and activity</summary>
+            {!!investigation.reviewNotes?.length && (
+              <p className="muted text-xs">
+                Earlier debate and verification outputs are preserved below. The final committee
+                assessment supersedes claims qualified by the source-quality review.
               </p>
-              <Findings run={bull} evidence={investigation.evidence} onEvidence={onEvidence} />
-            </section>
-            <section className="panel argument bear">
-              <div className="panel-heading">
-                <h3>
-                  <span className="argument-icon">↘</span>The Bear
-                </h3>
-                <span className="badge rose">Adversarial challenge</span>
-              </div>
-              <p>
-                {bear?.output?.summary ??
-                  'An independent agent will challenge the thesis and its assumptions.'}
-              </p>
-              <Findings run={bear} evidence={investigation.evidence} onEvidence={onEvidence} />
-            </section>
-          </div>
-          <section className="panel verification-panel">
-            <div className="verification-symbol">
-              <Scale size={27} />
-            </div>
-            <div>
-              <div className="eyebrow">INDEPENDENT VERIFICATION</div>
-              <h3>{verifier?.output?.verification ?? 'The thesis must survive the evidence.'}</h3>
-              <p>
-                {verifier?.output?.disputedClaim ??
-                  'The Verifier independently researches a disputed claim raised during the adversarial round.'}
-              </p>
-              {(bull?.output?.revision || verifier?.output?.revision) && (
-                <div className="revision">
-                  <CheckCircle2 size={16} />
-                  <span>
-                    <b>Thesis revised after verification</b>
-                    <br />
-                    {bull?.output?.revision ?? verifier?.output?.revision}
-                  </span>
-                </div>
-              )}
-            </div>
-            {verifier?.output && (
-              <button
-                className="button ghost"
-                onClick={() => {
-                  setSelected('verifier');
-                  window.scrollTo({ top: 300, behavior: 'smooth' });
-                }}
-              >
-                View findings <ArrowUpRight size={14} />
-              </button>
             )}
-          </section>
-          <section className="panel activity-panel">
-            <div className="panel-heading">
-              <h3>Research activity</h3>
-              <span className="muted text-xs">
-                {sample ? 'Curated sample events' : 'Actual execution events'}
-              </span>
-            </div>
-            <div className="activity-list">
-              {investigation.events.length ? (
-                investigation.events
-                  .slice()
-                  .reverse()
-                  .slice(0, 20)
-                  .map((event) => (
-                    <div className="activity-event" key={event.id}>
-                      <span className="activity-dot" />
-                      <time>
-                        {new Date(event.timestamp).toLocaleTimeString('en-GB', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                          second: '2-digit',
-                        })}
-                      </time>
-                      <b>{AGENTS.find((a) => a.id === event.agentId)?.name ?? 'System'}</b>
-                      <p>{event.message}</p>
-                    </div>
-                  ))
-              ) : (
-                <p className="muted">
-                  Research events will appear when a live investigation starts.
+            <div className="debate-grid">
+              <section className="panel argument bull">
+                <div className="panel-heading">
+                  <h3>
+                    <span className="argument-icon">↗</span>The Bull
+                  </h3>
+                  <span className="badge green">Investment case</span>
+                </div>
+                <p>
+                  {bull?.output?.summary ??
+                    'The investment case will be constructed from the research evidence.'}
                 </p>
-              )}
+                <Findings run={bull} evidence={investigation.evidence} onEvidence={onEvidence} />
+              </section>
+              <section className="panel argument bear">
+                <div className="panel-heading">
+                  <h3>
+                    <span className="argument-icon">↘</span>The Bear
+                  </h3>
+                  <span className="badge rose">Adversarial challenge</span>
+                </div>
+                <p>
+                  {bear?.output?.summary ??
+                    'An independent agent will challenge the thesis and its assumptions.'}
+                </p>
+                <Findings run={bear} evidence={investigation.evidence} onEvidence={onEvidence} />
+              </section>
             </div>
-          </section>
+            <section className="panel verification-panel">
+              <div className="verification-symbol">
+                <Scale size={27} />
+              </div>
+              <div>
+                <div className="eyebrow">INDEPENDENT VERIFICATION</div>
+                <h3>{verifier?.output?.verification ?? 'The thesis must survive the evidence.'}</h3>
+                <p>
+                  {verifier?.output?.disputedClaim ??
+                    'The Verifier independently researches a disputed claim raised during the adversarial round.'}
+                </p>
+                {(bull?.output?.revision || verifier?.output?.revision) && (
+                  <div className="revision">
+                    <CheckCircle2 size={16} />
+                    <span>
+                      <b>Thesis revised after verification</b>
+                      <br />
+                      {bull?.output?.revision ?? verifier?.output?.revision}
+                    </span>
+                  </div>
+                )}
+              </div>
+              {verifier?.output && (
+                <button
+                  className="button ghost"
+                  onClick={() => {
+                    setSelected('verifier');
+                    window.scrollTo({ top: 300, behavior: 'smooth' });
+                  }}
+                >
+                  View findings <ArrowUpRight size={14} />
+                </button>
+              )}
+            </section>
+            <section className="panel activity-panel">
+              <div className="panel-heading">
+                <h3>Research activity</h3>
+                <span className="muted text-xs">
+                  {sample ? 'Curated sample events' : 'Actual execution events'}
+                </span>
+              </div>
+              <div className="activity-list">
+                {investigation.events.length ? (
+                  investigation.events
+                    .slice()
+                    .reverse()
+                    .slice(0, 20)
+                    .map((event) => (
+                      <div className="activity-event" key={event.id}>
+                        <span className="activity-dot" />
+                        <time>
+                          {new Date(event.timestamp).toLocaleTimeString('en-GB', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit',
+                          })}
+                        </time>
+                        <b>{AGENTS.find((a) => a.id === event.agentId)?.name ?? 'System'}</b>
+                        <p>{event.message}</p>
+                      </div>
+                    ))
+                ) : (
+                  <p className="muted">
+                    Research events will appear when a live investigation starts.
+                  </p>
+                )}
+              </div>
+            </section>
+          </details>
         </>
       ) : (
         <section className="panel memo">
           <div className="memo-heading">
             <div>
-              <div className="eyebrow">PARALLAX / INVESTMENT RESEARCH</div>
-              <h2>{investigation.title}</h2>
+              <div className="eyebrow">RESEARCH FINDINGS</div>
+              <h2>What the evidence says</h2>
               <p>
                 {sample
                   ? 'Illustrative assessment based on a curated research sample.'
-                  : `Research completed ${dateLabel(investigation.completedAt)} · Research: ${investigation.model ?? 'Claude'} · Assessment: ${committee?.model ?? investigation.model ?? 'Claude'}`}
+                  : investigation.status === 'completed'
+                    ? `Completed ${dateLabel(investigation.completedAt)} · Independently checked by the research team`
+                    : 'The final assessment appears after research and independent verification.'}
               </p>
             </div>
             <BrandMark />
           </div>
+          {sources.length > 0 && (
+            <div className="memo-source-strip" aria-label="Research sources">
+              <span>Based on {sources.length} sources</span>
+              {publishers.slice(0, 5).map((source) => (
+                <button
+                  key={source.id}
+                  onClick={() => onEvidence([source.id])}
+                  title={source.title}
+                >
+                  <DomainIdentity
+                    url={source.url}
+                    name={sourceName(source.url, source.publisher)}
+                    size={26}
+                  />
+                  <span>{sourceName(source.url, source.publisher)}</span>
+                </button>
+              ))}
+            </div>
+          )}
           {investigation.reviewNotes?.length ? (
             <details className="memo-review">
               <summary>Source-quality review incorporated</summary>
@@ -522,41 +610,122 @@ export default function InvestigationRoom({
             </details>
           ) : null}
           <div className="decision-box">
-            <span>COMMITTEE ASSESSMENT</span>
+            <span>DECISION · {readable(investigation.confidence)} confidence</span>
             <h3>{investigation.decision ?? committee?.output?.decision ?? 'Assessment pending'}</h3>
             <p>
               {committee?.output?.summary ??
                 'The committee will synthesize the evidence, the Bull and Bear cases, and the Verifier’s findings.'}
             </p>
           </div>
-          <Findings run={committee} evidence={investigation.evidence} onEvidence={onEvidence} />
+          {committee?.output && (
+            <div
+              className={`research-findings-grid ${knownFindings.length ? '' : 'single-column'}`}
+            >
+              {knownFindings.length > 0 && (
+                <section className="research-findings-known">
+                  <h3>
+                    <ShieldCheck size={18} /> What is supported
+                  </h3>
+                  {knownFindings.length ? (
+                    <Findings
+                      run={{
+                        ...committee,
+                        output: { ...committee.output, findings: knownFindings },
+                      }}
+                      evidence={investigation.evidence}
+                      onEvidence={onEvidence}
+                    />
+                  ) : (
+                    <p className="muted">
+                      The committee has not established a sufficiently supported factual finding.
+                      Review the open questions and sources before acting.
+                    </p>
+                  )}
+                </section>
+              )}
+              <section className="research-findings-open">
+                <h3>
+                  <Scale size={18} />{' '}
+                  {knownFindings.length ? 'What still needs proof' : 'Findings & limitations'}
+                </h3>
+                {committee.output.findings.some((finding) => !knownFindings.includes(finding)) ? (
+                  <Findings
+                    run={{
+                      ...committee,
+                      output: {
+                        ...committee.output,
+                        findings: committee.output.findings.filter(
+                          (finding) => !knownFindings.includes(finding),
+                        ),
+                      },
+                    }}
+                    evidence={investigation.evidence}
+                    onEvidence={onEvidence}
+                  />
+                ) : (
+                  <p className="muted">
+                    No additional uncertainty was classified in the committee findings. Review the
+                    next steps and sources for remaining diligence.
+                  </p>
+                )}
+              </section>
+            </div>
+          )}
           {committee?.output?.questions?.length ? (
             <div className="memo-actions">
-              <h3>Next diligence actions</h3>
-              {committee.output.questions.map((q, i) => (
+              <h3>What to do next</h3>
+              {committee.output.questions.slice(0, 3).map((q, i) => (
                 <p key={q}>
                   <span>0{i + 1}</span>
                   {q}
                 </p>
               ))}
+              {committee.output.questions.length > 3 && (
+                <details className="research-more-questions">
+                  <summary>
+                    {committee.output.questions.length - 3} more diligence questions
+                  </summary>
+                  {committee.output.questions.slice(3).map((question) => (
+                    <p key={question}>{question}</p>
+                  ))}
+                </details>
+              )}
             </div>
           ) : null}
           <div className="memo-sources">
-            <h3>Evidence & sources</h3>
-            {uniqueSources(investigation.evidence).map((e, i) => (
+            <div className="panel-heading">
+              <h3>Sources behind this research</h3>
+              <button className="text-button" onClick={() => onEvidence()}>
+                Review all {sources.length} <ArrowUpRight size={14} />
+              </button>
+            </div>
+            {sources.slice(0, 5).map((e) => (
               <a href={e.url} key={e.id} target="_blank" rel="noopener noreferrer">
-                <span>{String(i + 1).padStart(2, '0')}</span>
+                <DomainIdentity url={e.url} name={sourceName(e.url, e.publisher)} size={36} />
                 <div>
                   <strong>{e.title}</strong>
                   <small>
-                    {e.publisher} · {dateLabel(e.publishedAt)} · retrieved{' '}
-                    {dateLabel(e.retrievedAt)}
+                    {sourceName(e.url, e.publisher)} · {readable(e.type)} · {readable(e.status)}
                   </small>
                 </div>
                 <ArrowUpRight size={15} />
               </a>
             ))}
           </div>
+          {!sample && (
+            <details className="memo-review">
+              <summary>Research audit · models, usage and source review</summary>
+              <p>
+                Research: {investigation.model ?? 'Claude'} · Final assessment:{' '}
+                {committee?.model ?? investigation.model ?? 'Claude'}.
+              </p>
+              <p>
+                {investigation.totalInputTokens.toLocaleString()} input tokens ·{' '}
+                {investigation.totalOutputTokens.toLocaleString()} output tokens. Open Research team
+                for individual executions and history.
+              </p>
+            </details>
+          )}
           <p className="memo-disclaimer">
             Research for investment discovery. Evidence quality and unresolved assumptions are
             presented explicitly. This is not an investment recommendation.

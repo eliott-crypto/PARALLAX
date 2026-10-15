@@ -6,19 +6,19 @@ Start with `npm install && npm run build && npm start`, then open http://127.0.0
 
 “Most investment tools start with a company you already know. PARALLAX starts with a change in the world and asks who might benefit.”
 
-Show Signal Radar. The initial three cards are explicitly labelled curated samples, with real sources. Open the inference-cost signal and its labelled causal links. Explain that cheaper reasoning may increase demand for execution infrastructure; the downstream links are hypotheses.
+Open **Discover**, the single home for signals and company discovery. The initial three cards are explicitly labelled curated samples, with real sources. Open the inference-cost signal and its labelled causal links. Explain that cheaper reasoning may increase demand for execution infrastructure; the downstream links are hypotheses.
 
 On the prepared local workspace, the radar instead shows the latest real cybersecurity scan: Chainguard's October 14 announcements, with E2B and Microsandbox discovered as possible beneficiaries. Open a source and show the hypothesis labels. Then introduce the separate, completed Browserbase case to demonstrate deeper investigation. Do not imply that the cybersecurity signal produced the Browserbase case.
 
 ## 0:30–1:10 — Open the real investigation
 
-Return to Overview and click **Replay completed investigation**. Its header says **Recorded investigation**, with the actual timestamps and sources. This is saved Claude execution, not simulated live activity.
+Open **Investigations**, then choose the completed Browserbase investigation. Its header says **Recorded investigation**, with the actual timestamps and sources. This is saved Claude execution, not simulated live activity.
 
-The room opens on Investment Committee. Show the recorded Opus 5.5 model and actual provider usage. Select Founder Analyst and Company Hunter to inspect public professional research, real competitors and citation drilldown; these earlier outputs are preserved as history and may contain claims superseded by the final memo.
+The room opens on **Findings**, with the decision and sources first. Open **Research team** to show the recorded Opus 5.5 model and provider usage under execution details. Select Founder Analyst and Company Hunter to inspect public professional research, real competitors and citation drilldown; these earlier outputs are preserved as history and may contain claims superseded by the final memo.
 
 ## 1:10–2:10 — The team corrects itself
 
-Show Bull and Bear. The original Bull argued for a developer-distribution moat; the Bear questioned whether distribution converts into durable paid demand.
+Open the debate and verification history inside **Research team** to show Bull and Bear. The original Bull argued for a developer-distribution moat; the Bear questioned whether distribution converts into durable paid demand.
 
 The first Verifier found the official Stagehand FAQ: MIT-licensed, usable without a Browserbase account. The Bull revised its lock-in argument.
 
@@ -28,9 +28,9 @@ Click **Review corrections**. A second bounded source challenge found that Sales
 
 ## 2:10–2:50 — A decision with explicit unknowns
 
-Open **Investment memo**. The final Opus 5.5 committee decision is **MONITOR**, with **LOW research confidence**. It removes unsupported numerical precision and states the missing data: SDK-to-paid conversion, realised margins, retention, present ARR and enterprise commitment terms.
+Open **Findings**. The final Opus 5.5 committee decision is **MONITOR**, with **LOW research confidence**. It removes unsupported numerical precision and states the missing data: SDK-to-paid conversion, realised margins, retention, present ARR and enterprise commitment terms.
 
-Show the three concrete diligence questions, working sources and Export. Save the thesis to Watchtower. Rechecks run on demand; there is no claim of background scheduling.
+Show the three concrete diligence questions, working sources and Export. Choose **Save research** to put it under **Saved**. Rechecks run on demand; there is no claim of background scheduling.
 
 ## 2:50–3:00 — Close
 
@@ -41,3 +41,11 @@ Show the three concrete diligence questions, working sources and Export. Save th
 Use New investigation for fresh execution, or Scan for signals for a bounded two-agent scout/discovery pass. These consume Anthropic credits and take several minutes. The recorded run keeps the presentation reliable.
 
 The saved trace includes a token-budget interruption and legitimate assessment recovery. It also identifies external source-quality review notes separately from Claude execution. Do not present it as a flawless first pass, an autonomous always-on monitor, audited financial due diligence, or a prediction of returns.
+
+## The simplified interface
+
+- **Discover:** sourced changes, possible beneficiaries, and original articles. Company and publisher icons identify the actual domains used; recognizable names are shown for known publishers.
+- **Investigations:** active and completed research together. Findings lead; the complete agent graph and audit remain available under Research team.
+- **Saved:** research explicitly saved for later, with manual rechecks.
+
+Source history records agent-assigned claim statuses and reviewed interpretation corrections across actual runs. It does not imply publisher accuracy or investment returns. No realised outcome dataset exists yet, so historical signal performance is labelled unmeasured. FT and WSJ branding appears only if their domains actually occur in the cited research.

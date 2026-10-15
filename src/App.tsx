@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  LayoutDashboard,
   Radar,
   Network,
   Telescope,
-  History,
   Search,
   Settings2,
   ChevronDown,
@@ -13,7 +11,6 @@ import {
   ArrowRight,
   ExternalLink,
   X,
-  Command,
   Sparkles,
   ChevronRight,
   Bookmark,
@@ -24,7 +21,6 @@ import {
   Globe2,
   Info,
   Check,
-  Bell,
   PanelLeftClose,
   PanelLeftOpen,
   ShieldCheck,
@@ -41,16 +37,21 @@ import type {
   Company,
 } from '../shared/types';
 import { api, post, dateLabel, readable, sourceCount } from './lib/api';
-import { Brand, CausalMap, EvidenceChart, MiniVisual, OrbitGraphic } from './components/Visuals';
+import { Brand, CausalMap, OrbitGraphic } from './components/Visuals';
 import InvestigationRoom from './components/InvestigationRoom';
+import { DomainIdentity } from './components/Identity';
+import {
+  summarizeSourceHistory,
+  sourceName,
+  publicSourceDomain,
+  SOURCE_HISTORY_EXPLANATION,
+} from './lib/source-intelligence';
 
-type Page = 'Overview' | 'Signal Radar' | 'Investigations' | 'Watchtower' | 'Research History';
+type Page = 'Discover' | 'Investigations' | 'Saved';
 const NAV = [
-  { name: 'Overview', icon: LayoutDashboard },
-  { name: 'Signal Radar', icon: Radar },
-  { name: 'Investigations', icon: Network },
-  { name: 'Watchtower', icon: Telescope },
-  { name: 'Research History', icon: History },
+  { name: 'Discover', description: 'Signals & companies', icon: Radar },
+  { name: 'Investigations', description: 'Research & decisions', icon: Network },
+  { name: 'Saved', description: 'Follow up on a thesis', icon: Bookmark },
 ] as const;
 const sectorMatches = (actual: string, selected: string) =>
   selected === 'All sectors' ||
@@ -70,7 +71,7 @@ const SECTORS = [
   'Fintech',
 ];
 export default function App() {
-  const [page, setPage] = useState<Page>('Overview');
+  const [page, setPage] = useState<Page>('Discover');
   const [status, setStatus] = useState<ApiStatus | null>(null);
   const [radar, setRadar] = useState<RadarData | null>(null);
   const [runs, setRuns] = useState<Investigation[]>([]);
@@ -363,6 +364,9 @@ export default function App() {
     }
   }
   const evidence = radar?.evidence ?? [];
+  const sourceHistory = summarizeSourceHistory(runs, evidence).sort(
+    (a, b) => b.corrected - a.corrected || b.investigationCount - a.investigationCount,
+  );
   const signals = (radar?.signals ?? []).filter(
     (s) =>
       sectorMatches(s.sector, sector) &&
@@ -375,18 +379,16 @@ export default function App() {
   );
   const watched = runs.filter((r) => r.watched);
   const active = status?.activeRuns ?? runs.filter((r) => r.status === 'running').length;
-  const latestCompleted = runs
-    .filter((run) => run.status === 'completed' && run.mode !== 'sample')
-    .sort(
-      (a, b) => Date.parse(b.completedAt ?? b.createdAt) - Date.parse(a.completedAt ?? a.createdAt),
-    )[0];
   const latestActive = runs.find((run) => run.status === 'running');
-  const shownRuns = (page === 'Watchtower' ? watched : runs).filter((r) =>
+  const shownRuns = (page === 'Saved' ? watched : runs).filter((r) =>
     `${r.title} ${r.query}`.toLowerCase().includes(search.toLowerCase()),
   );
   const heroSignal = signals[0] ?? radar?.signals[0];
   const openSources = (ids?: string[], ev: Evidence[] = current?.evidence ?? evidence) => {
-    setSourceDrawer({ evidence: ev, ids });
+    setSourceDrawer({
+      evidence: Array.from(new Map(ev.map((entry) => [entry.id, entry])).values()),
+      ids,
+    });
     setSourceFilter('All sources');
   };
   return (
@@ -420,17 +422,9 @@ export default function App() {
             <PanelLeftOpen size={16} className="expand-sidebar-icon" />
           </button>
         </div>
-        <button className="workspace-switch" onClick={() => setModal('settings')}>
-          <span className="workspace-monogram">P</span>
-          <div>
-            <strong>Research workspace</strong>
-            <small>Venture intelligence</small>
-          </div>
-          <ChevronDown size={13} />
-        </button>
-        <div className="nav-caption">WORKSPACE</div>
+        <div className="nav-caption">YOUR RESEARCH</div>
         <nav>
-          {NAV.map(({ name, icon: Icon }) => (
+          {NAV.map(({ name, description, icon: Icon }) => (
             <button
               key={name}
               className={`nav-item ${page === name ? 'active' : ''}`}
@@ -441,72 +435,19 @@ export default function App() {
               <span className="nav-icon">
                 <Icon size={18} strokeWidth={1.5} />
               </span>
-              <span>{name}</span>
+              <span className="nav-label">
+                <strong>{name}</strong>
+                <small className="nav-description">{description}</small>
+              </span>
               {name === 'Investigations' && active > 0 && (
                 <span className="nav-count">{active}</span>
               )}
-              {name === 'Watchtower' && watched.length > 0 && (
+              {name === 'Saved' && watched.length > 0 && (
                 <span className="nav-count">{watched.length}</span>
               )}
             </button>
           ))}
         </nav>
-        <div className="sidebar-divider" />
-        <button
-          className="nav-item"
-          onClick={() => openSources()}
-          title="Evidence library"
-          aria-label="Evidence library"
-        >
-          <span className="nav-icon">
-            <BookOpen size={18} strokeWidth={1.5} />
-          </span>
-          <span>Evidence library</span>
-          <ArrowUpRight size={13} className="nav-trailing" />
-        </button>
-        <button
-          className="nav-item"
-          onClick={() => setModal('settings')}
-          title="Workspace settings"
-          aria-label="Workspace settings"
-        >
-          <span className="nav-icon">
-            <Settings2 size={18} strokeWidth={1.5} />
-          </span>
-          <span>Workspace settings</span>
-        </button>
-        <div className="sidebar-bottom">
-          <div className="sidebar-promo">
-            <div className="promo-stars" />
-            <span>THE RESEARCH ADVANTAGE</span>
-            <h3>
-              See what others
-              <br />
-              haven’t connected.
-            </h3>
-            <p>
-              Nine perspectives.
-              <br />
-              One evidence-backed thesis.
-            </p>
-            <button onClick={() => sample && openRun(sample)}>
-              Explore research sample <ArrowUpRight size={15} />
-            </button>
-          </div>
-          <button
-            className="profile"
-            onClick={() => setModal('settings')}
-            title="Personal workspace settings"
-            aria-label="Personal workspace settings"
-          >
-            <span className="profile-avatar">P</span>
-            <div>
-              <strong>Personal workspace</strong>
-              <small>{status?.configured ? 'Claude connected' : 'Sample workspace'}</small>
-            </div>
-            <Settings2 size={15} />
-          </button>
-        </div>
       </aside>
       {mobileNav && <div className="nav-overlay" onClick={() => setMobileNav(false)} />}
       <main className="main">
@@ -532,17 +473,16 @@ export default function App() {
               <span>Search anything</span>
               <kbd>⌘ K</kbd>
             </button>
-            <button className="connection-pill" onClick={() => setModal('settings')}>
+            <span className="connection-pill">
               <span className={`status-dot ${status?.configured ? 'connected' : ''}`} />
-              {status?.configured ? 'Claude connected' : 'Sample mode'}
-              <ChevronDown size={12} />
-            </button>
+              {!status ? 'Connecting…' : status.configured ? 'Claude connected' : 'Sample mode'}
+            </span>
             <button
               className="topbar-avatar"
-              aria-label="Workspace settings"
+              aria-label="Research settings"
               onClick={() => setModal('settings')}
             >
-              P
+              <Settings2 size={18} />
             </button>
           </div>
         </header>
@@ -564,36 +504,28 @@ export default function App() {
               <div className="page-heading">
                 <div>
                   <div className="eyebrow">
-                    AUTONOMOUS VENTURE INTELLIGENCE <span className="eyebrow-line" />
+                    {page === 'Discover'
+                      ? '01 / DISCOVER'
+                      : page === 'Investigations'
+                        ? '02 / INVESTIGATE'
+                        : '03 / FOLLOW UP'}
                   </div>
                   <h1>
-                    {page === 'Overview'
-                      ? 'Intelligence before consensus.'
-                      : page === 'Signal Radar'
-                        ? 'The next opportunity starts here.'
-                        : page === 'Watchtower'
-                          ? 'Conviction deserves a second look.'
-                          : page === 'Research History'
-                            ? 'Every investigation. Every perspective.'
-                            : 'A research team for every thesis.'}
+                    {page === 'Discover'
+                      ? 'What changed. Who benefits.'
+                      : page === 'Saved'
+                        ? 'The theses you’re following.'
+                        : 'Your research. Clear decisions.'}
                   </h1>
-                  <p>
-                    {page === 'Overview'
-                      ? 'Connect emerging signals to the companies positioned to benefit.'
-                      : page === 'Signal Radar'
-                        ? 'Find the changes that matter. Trace their consequences. Follow the evidence.'
-                        : page === 'Watchtower'
-                          ? 'Save your theses and recheck them against new evidence, on demand.'
-                          : page === 'Research History'
-                            ? 'Your research, decisions and cited evidence, preserved.'
-                            : 'Independent agents. Adversarial reasoning. Evidence you can inspect.'}
+                  <p className="page-purpose">
+                    {page === 'Discover'
+                      ? 'Read the signal, inspect the sources, then investigate a company.'
+                      : page === 'Saved'
+                        ? 'Recheck a saved thesis when you want fresh evidence. Nothing runs in the background.'
+                        : 'All active and completed investigations in one place. Open one to see its findings and sources.'}
                   </p>
                 </div>
                 <div className="heading-actions">
-                  <button className="button ghost" onClick={() => sample && openRun(sample)}>
-                    <BookOpen size={15} />
-                    Explore sample
-                  </button>
                   <button className="button primary" onClick={() => prepareResearch()}>
                     <Plus size={16} />
                     New investigation
@@ -614,12 +546,16 @@ export default function App() {
                   </button>
                 </div>
               )}
-              {(page === 'Overview' || page === 'Signal Radar') && (
+              {page === 'Discover' && (
                 <>
-                  <div className="sample-context">
+                  <div className="sample-context" role="status">
                     <span className={`status-dot ${radar?.mode === 'live' ? 'connected' : ''}`} />
                     <span>
-                      {radar?.mode === 'live' ? 'Live research results' : 'Curated research sample'}
+                      {loading
+                        ? 'Loading research…'
+                        : radar?.mode === 'live'
+                          ? 'Live research results'
+                          : 'Curated research sample'}
                     </span>
                     <span className="context-divider">/</span>
                     <span>
@@ -627,68 +563,9 @@ export default function App() {
                         ? `Retrieved ${dateLabel(radar.updatedAt)}`
                         : 'Historical catalysts · real sources · illustrative theses'}
                     </span>
-                    <button onClick={() => setModal('settings')}>
-                      <Info size={13} />
-                    </button>
                   </div>
                   {radar?.warning && <div className="subtle-notice">{radar.warning}</div>}
-                  {page === 'Overview' && (
-                    <div className="metric-grid">
-                      <Metric
-                        label="Signals in focus"
-                        value={String(radar?.signals.length ?? 0).padStart(2, '0')}
-                        detail={
-                          radar?.mode === 'live'
-                            ? 'Retrieved opportunities'
-                            : 'Curated opportunity signals'
-                        }
-                        variant={0}
-                      />
-                      <Metric
-                        label="Companies discovered"
-                        value={String(companies.length).padStart(2, '0')}
-                        detail="Connected to emerging theses"
-                        variant={1}
-                      />
-                      <Metric
-                        label="Evidence sources"
-                        value={String(sourceCount(evidence)).padStart(2, '0')}
-                        detail="Traceable, inspectable citations"
-                        variant={2}
-                      />
-                      <Metric
-                        label="Research perspectives"
-                        value="09"
-                        detail="One adversarial research team"
-                        variant={3}
-                      />
-                    </div>
-                  )}
-                  {page === 'Overview' && latestCompleted && (
-                    <section className="panel saved-run-banner">
-                      <span className="saved-run-icon">
-                        <ShieldCheck size={23} strokeWidth={1.4} />
-                      </span>
-                      <div>
-                        <div className="eyebrow">COMPLETED CLAUDE INVESTIGATION</div>
-                        <h3>{latestCompleted.title}</h3>
-                        <p>
-                          {sourceCount(latestCompleted.evidence)} cited sources ·{' '}
-                          {
-                            latestCompleted.agents.filter((agent) => agent.status === 'completed')
-                              .length
-                          }{' '}
-                          agents completed ·{' '}
-                          {dateLabel(latestCompleted.completedAt ?? latestCompleted.createdAt)}
-                        </p>
-                      </div>
-                      <button className="button ghost" onClick={() => openRun(latestCompleted)}>
-                        <History size={14} />
-                        Replay completed investigation <ArrowUpRight size={14} />
-                      </button>
-                    </section>
-                  )}
-                  {page === 'Overview' && latestActive && (
+                  {page === 'Discover' && latestActive && (
                     <button className="active-run-banner" onClick={() => openRun(latestActive)}>
                       <span className="status-dot active" />
                       <span>
@@ -733,7 +610,7 @@ export default function App() {
                       </button>
                     </div>
                   </div>
-                  {page === 'Signal Radar' && (
+                  {page === 'Discover' && (
                     <div className="radar-search">
                       <Search size={17} />
                       <input
@@ -770,11 +647,14 @@ export default function App() {
                       </>
                     ) : signals.length ? (
                       signals
-                        .slice(0, page === 'Overview' ? 3 : undefined)
+                        .slice(0, 6)
                         .map((signal, i) => (
                           <SignalCard
                             key={signal.id}
                             signal={signal}
+                            evidence={evidence.filter((entry) =>
+                              signal.evidenceIds.includes(entry.id),
+                            )}
                             sourceTotal={sourceCount(
                               evidence.filter((entry) => signal.evidenceIds.includes(entry.id)),
                             )}
@@ -800,7 +680,7 @@ export default function App() {
                       </div>
                     )}
                   </div>
-                  {page === 'Overview' && (
+                  {page === 'Discover' && (
                     <>
                       <div className="analysis-grid">
                         <section className="panel causal-panel">
@@ -838,10 +718,8 @@ export default function App() {
                         <section className="panel evidence-panel">
                           <div className="panel-heading">
                             <div>
-                              <h3>Quality over noise.</h3>
-                              <p>
-                                Source mix in this {radar?.mode === 'live' ? 'research' : 'sample'}.
-                              </p>
+                              <h3>Read what the research is based on</h3>
+                              <p>Original reporting, company claims and independent checks.</p>
                             </div>
                             <button
                               className="icon-button"
@@ -851,9 +729,48 @@ export default function App() {
                               <ArrowUpRight size={17} />
                             </button>
                           </div>
-                          <EvidenceChart evidence={evidence} />
+                          <div className="source-strip">
+                            {Array.from(
+                              new Map(
+                                evidence.map((entry) => [new URL(entry.url).hostname, entry]),
+                              ).values(),
+                            )
+                              .slice(0, 4)
+                              .map((entry) => (
+                                <button
+                                  className="source-chip"
+                                  key={entry.id}
+                                  onClick={() =>
+                                    openSources(
+                                      evidence
+                                        .filter(
+                                          (item) =>
+                                            new URL(item.url).hostname ===
+                                            new URL(entry.url).hostname,
+                                        )
+                                        .map((item) => item.id),
+                                    )
+                                  }
+                                >
+                                  <DomainIdentity
+                                    url={entry.url}
+                                    name={sourceName(entry.url, entry.publisher)}
+                                    size={36}
+                                  />
+                                  <span>
+                                    <strong>{sourceName(entry.url, entry.publisher)}</strong>
+                                    <small>
+                                      {entry.type === 'FIRST_PARTY_COMPANY_CLAIM'
+                                        ? 'Company claim'
+                                        : readable(entry.type)}
+                                    </small>
+                                  </span>
+                                  <ArrowUpRight size={15} />
+                                </button>
+                              ))}
+                          </div>
                           <button className="panel-bottom-link" onClick={() => openSources()}>
-                            Explore the evidence library <ArrowUpRight size={14} />
+                            Inspect all {sourceCount(evidence)} sources <ArrowUpRight size={14} />
                           </button>
                         </section>
                       </div>
@@ -869,15 +786,13 @@ export default function App() {
                           <div className="company-table">
                             <div className="company-table-head">
                               <span>COMPANY / CATEGORY</span>
-                              <span>THESIS ALIGNMENT</span>
+                              <span>WHY IT COULD BENEFIT</span>
                               <span>RESEARCH</span>
                             </div>
-                            {companies.slice(0, 4).map((c, i) => (
+                            {companies.slice(0, 4).map((c) => (
                               <div className="company-row" key={c.id}>
                                 <div className="company-identity">
-                                  <span className={`company-avatar color-${i % 4}`}>
-                                    {c.name.slice(0, 1)}
-                                  </span>
+                                  <DomainIdentity url={c.website} name={c.name} size={42} />
                                   <div>
                                     <a href={c.website} target="_blank" rel="noopener noreferrer">
                                       {c.name}
@@ -886,7 +801,7 @@ export default function App() {
                                     <small>{c.category}</small>
                                   </div>
                                 </div>
-                                <p>{c.alignment}</p>
+                                <p>{c.alignment.replace(/^Related Scout finding:[\s\S]*?\)\.\s*/, '')}</p>
                                 <button
                                   className="icon-button company-investigate"
                                   title={`Investigate ${c.name}`}
@@ -908,54 +823,65 @@ export default function App() {
                         <section className="panel source-feed">
                           <div className="panel-heading">
                             <div>
-                              <h3>The source feed</h3>
-                              <p>Evidence behind the perspective.</p>
+                              <h3>Source history</h3>
+                              <p>How our use of each source has held up.</p>
                             </div>
-                            <button
-                              className="icon-button"
-                              title="View all sources"
-                              onClick={() => openSources()}
-                            >
-                              <ArrowUpRight size={17} />
-                            </button>
+                            <ShieldCheck size={21} />
                           </div>
-                          {evidence.slice(0, 4).map((e, i) => (
-                            <a
-                              className="source-item"
-                              key={e.id}
-                              href={e.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              <span className="source-number">0{i + 1}</span>
-                              <div>
-                                <small>
-                                  {e.publisher}
-                                  <span>↗</span>
-                                </small>
-                                <strong>{e.title}</strong>
-                                <span className="source-date">{dateLabel(e.publishedAt)}</span>
-                              </div>
-                            </a>
-                          ))}
+                          <div className="source-audit-grid">
+                            {sourceHistory.slice(0, 4).map((source) => (
+                              <button
+                                className="publisher-card"
+                                key={source.domain}
+                                onClick={() =>
+                                  openSources(
+                                    undefined,
+                                    runs
+                                      .filter((run) => run.mode !== 'sample')
+                                      .flatMap((run) => run.evidence)
+                                      .concat(evidence)
+                                      .filter(
+                                        (entry) => publicSourceDomain(entry.url) === source.domain,
+                                      ),
+                                  )
+                                }
+                              >
+                                <DomainIdentity
+                                  url={source.url}
+                                  name={sourceName(source.url, source.publisher)}
+                                  size={36}
+                                />
+                                <span>
+                                  <strong>{sourceName(source.url, source.publisher)}</strong>
+                                  <small>
+                                    {source.investigationCount} investigations · {source.corrected}{' '}
+                                    interpretation corrections
+                                  </small>
+                                  <small className="source-audit-stats">
+                                    <span>{source.supported} supported</span>
+                                    <span>{source.partial + source.unverified} unresolved</span>
+                                    <span>{source.contradicted} contradicted</span>
+                                  </small>
+                                </span>
+                                <span className={`badge ${source.corrected ? 'rose' : ''}`}>
+                                  {source.status}
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                          <p className="source-audit-note">{SOURCE_HISTORY_EXPLANATION}</p>
                         </section>
                       </div>
                     </>
                   )}
                 </>
               )}
-              {(page === 'Investigations' ||
-                page === 'Watchtower' ||
-                page === 'Research History') && (
+              {(page === 'Investigations' || page === 'Saved') && (
                 <>
                   <div className="investigation-toolbar">
                     <div className="tabs">
                       <button className="selected">
-                        {page === 'Watchtower'
-                          ? 'Saved theses'
-                          : page === 'Research History'
-                            ? 'All research'
-                            : 'Your investigations'}
+                        {page === 'Saved' ? 'Saved theses' : 'All investigations'}
                         <span>{shownRuns.length}</span>
                       </button>
                     </div>
@@ -968,7 +894,7 @@ export default function App() {
                       />
                     </div>
                   </div>
-                  {page === 'Watchtower' && (
+                  {page === 'Saved' && (
                     <div className="watchtower-notice">
                       <Telescope size={19} />
                       <span>
@@ -983,7 +909,15 @@ export default function App() {
                         <article className="panel investigation-card" key={run.id}>
                           <button className="investigation-card-main" onClick={() => openRun(run)}>
                             <div className="investigation-card-symbol">
-                              <Network size={25} strokeWidth={1.2} />
+                              {run.company ? (
+                                <DomainIdentity
+                                  url={run.company.website}
+                                  name={run.company.name}
+                                  size={48}
+                                />
+                              ) : (
+                                <Network size={25} strokeWidth={1.2} />
+                              )}
                             </div>
                             <div>
                               <div className="investigation-meta">
@@ -1020,11 +954,11 @@ export default function App() {
                               onClick={() => updateWatch(run)}
                             >
                               <Bookmark size={14} fill={run.watched ? 'currentColor' : 'none'} />
-                              {run.watched ? 'Saved to Watchtower' : 'Watch thesis'}
+                              {run.watched ? 'Saved' : 'Save thesis'}
                             </button>
                             <button className="text-button" onClick={() => recheck(run)}>
                               <RefreshCw size={13} />
-                              Recheck thesis
+                              Research again
                             </button>
                             <span className="badge">{readable(run.status)}</span>
                           </div>
@@ -1035,19 +969,19 @@ export default function App() {
                     <div className="panel research-empty">
                       <OrbitGraphic />
                       <div className="eyebrow">
-                        {page === 'Watchtower'
+                        {page === 'Saved'
                           ? 'A PLACE FOR YOUR CONVICTION'
                           : 'RESEARCH WITH A DIFFERENT PERSPECTIVE'}
                       </div>
                       <h2>
                         {search
                           ? 'No matching investigations.'
-                          : page === 'Watchtower'
+                          : page === 'Saved'
                             ? 'Keep your best theses in view.'
                             : 'Your next thesis starts with a question.'}
                       </h2>
                       <p>
-                        {page === 'Watchtower'
+                        {page === 'Saved'
                           ? 'Save a completed investigation to follow its assumptions and recheck when the world changes.'
                           : 'Give nine independent agents a signal or a company. Watch them build, challenge and verify the investment case.'}
                       </p>
@@ -1241,8 +1175,8 @@ export default function App() {
                 <div className="modal-icon">
                   <Settings2 size={24} />
                 </div>
-                <div className="eyebrow">WORKSPACE SETTINGS</div>
-                <h2 id="modal-title">Your research engine.</h2>
+                <div className="eyebrow">RESEARCH SETTINGS</div>
+                <h2 id="modal-title">Claude connection</h2>
                 <p>
                   PARALLAX uses Claude with web search to independently research, challenge and
                   verify a thesis.
@@ -1275,34 +1209,36 @@ export default function App() {
                     <code>{active}</code>
                   </div>
                 </div>
-                <div className="setup-instructions">
-                  <h4>
-                    <Terminal size={15} />
-                    Server-side configuration
-                  </h4>
-                  <p>
-                    Add your key to the project’s <code>.env</code> file and restart the server.
-                    Your key stays on the server.
-                  </p>
-                  <div className="code-block">
-                    <code>ANTHROPIC_API_KEY=your-key-here</code>
-                    <button
-                      className="icon-button"
-                      title="Copy configuration variable"
-                      onClick={() => {
-                        navigator.clipboard
-                          .writeText('ANTHROPIC_API_KEY=your-key-here')
-                          .then(() => {
-                            setCopied(true);
-                            setTimeout(() => setCopied(false), 2000);
-                          })
-                          .catch(() => notify('Copy the variable from the example.'));
-                      }}
-                    >
-                      {copied ? <Check size={14} /> : <Copy size={14} />}
-                    </button>
+                {!status?.configured && (
+                  <div className="setup-instructions">
+                    <h4>
+                      <Terminal size={15} />
+                      Server-side configuration
+                    </h4>
+                    <p>
+                      Add your key to the project’s <code>.env</code> file and restart the server.
+                      Your key stays on the server.
+                    </p>
+                    <div className="code-block">
+                      <code>ANTHROPIC_API_KEY=your-key-here</code>
+                      <button
+                        className="icon-button"
+                        title="Copy configuration variable"
+                        onClick={() => {
+                          navigator.clipboard
+                            .writeText('ANTHROPIC_API_KEY=your-key-here')
+                            .then(() => {
+                              setCopied(true);
+                              setTimeout(() => setCopied(false), 2000);
+                            })
+                            .catch(() => notify('Copy the variable from the example.'));
+                        }}
+                      >
+                        {copied ? <Check size={14} /> : <Copy size={14} />}
+                      </button>
+                    </div>
                   </div>
-                </div>
+                )}
                 <button
                   className="button primary full-width"
                   onClick={() => {
@@ -1430,6 +1366,33 @@ export default function App() {
               <span>{readable(selectedSignal.confidence)} confidence</span>
             </div>
             <div className="brief-section">
+              <h4>Read the original sources</h4>
+              <div className="source-strip">
+                {evidence
+                  .filter((entry) => selectedSignal.evidenceIds.includes(entry.id))
+                  .map((entry) => (
+                    <a
+                      className="source-chip"
+                      key={entry.id}
+                      href={entry.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <DomainIdentity
+                        url={entry.url}
+                        name={sourceName(entry.url, entry.publisher)}
+                        size={36}
+                      />
+                      <span>
+                        <strong>{sourceName(entry.url, entry.publisher)}</strong>
+                        <small>{entry.title}</small>
+                      </span>
+                      <ExternalLink size={15} />
+                    </a>
+                  ))}
+              </div>
+            </div>
+            <div className="brief-section">
               <h4>Why this matters</h4>
               <p>{selectedSignal.whyNow}</p>
             </div>
@@ -1455,7 +1418,7 @@ export default function App() {
                   key={c.id}
                   onClick={() => prepareResearch(selectedSignal, c)}
                 >
-                  <span className="company-avatar">{c.name[0]}</span>
+                  <DomainIdentity url={c.website} name={c.name} size={40} />
                   <div>
                     <strong>{c.name}</strong>
                     <p>{c.description}</p>
@@ -1496,7 +1459,7 @@ export default function App() {
               <div>
                 <div className="eyebrow">TRACE EVERY CLAIM</div>
                 <h2>
-                  Evidence library{' '}
+                  Sources{' '}
                   <span>
                     {
                       sourceDrawer.evidence.filter(
@@ -1569,10 +1532,13 @@ export default function App() {
                         <ArrowUpRight size={15} />
                       </a>
                     </h3>
-                    <strong className="evidence-publisher">{e.publisher}</strong>
+                    <div className="evidence-publisher">
+                      <DomainIdentity url={e.url} name={sourceName(e.url, e.publisher)} size={34} />
+                      <strong>{sourceName(e.url, e.publisher)}</strong>
+                    </div>
                     <p>{e.summary}</p>
                     <div className="evidence-claim">
-                      <small>SUPPORTS THE CLAIM</small>
+                      <small>CLAIM ASSESSED BY THE RESEARCH TEAM</small>
                       {e.claim}
                     </div>
                     {e.correction && (
@@ -1609,40 +1575,17 @@ export default function App() {
     </div>
   );
 }
-function Metric({
-  label,
-  value,
-  detail,
-  variant,
-}: {
-  label: string;
-  value: string;
-  detail: string;
-  variant: number;
-}) {
-  return (
-    <div className="metric-card">
-      <span className="metric-label">{label}</span>
-      <div className="metric-value">
-        {value}
-        <MiniVisual variant={variant} />
-      </div>
-      <span className="metric-detail">
-        <span className="tiny-diamond" />
-        {detail}
-      </span>
-    </div>
-  );
-}
 function SignalCard({
   signal,
   sourceTotal,
+  evidence,
   index,
   onOpen,
   onResearch,
 }: {
   signal: Signal;
   sourceTotal: number;
+  evidence: Evidence[];
   index: number;
   onOpen: () => void;
   onResearch: () => void;
@@ -1656,6 +1599,22 @@ function SignalCard({
             {signal.sector}
           </span>
           <ArrowUpRight size={17} />
+        </div>
+        <div className="signal-publisher-row">
+          {Array.from(
+            new Map(evidence.map((entry) => [publicSourceDomain(entry.url), entry])).values(),
+          )
+            .slice(0, 2)
+            .map((entry) => (
+              <span className="signal-publisher" key={entry.id}>
+                <DomainIdentity
+                  url={entry.url}
+                  name={sourceName(entry.url, entry.publisher)}
+                  size={28}
+                />
+                <span>{sourceName(entry.url, entry.publisher)}</span>
+              </span>
+            ))}
         </div>
         <div className="signal-date">
           SIGNAL 0{index + 1}
@@ -1673,15 +1632,17 @@ function SignalCard({
       </button>
       <div className="signal-card-footer">
         <div className="signal-company-group">
-          {signal.companies.slice(0, 3).map((c, i) => (
-            <span key={c.id} className={`small-company-logo color-${i}`} title={c.name}>
-              {c.name.slice(0, 1)}
-            </span>
+          {signal.companies.slice(0, 3).map((c) => (
+            <DomainIdentity key={c.id} url={c.website} name={c.name} size={25} />
           ))}
-          <span>{signal.companies.length} potential beneficiaries</span>
+          <span>
+            {signal.companies.length
+              ? signal.companies.map((company) => company.name).join(' · ')
+              : 'Beneficiaries not yet verified'}
+          </span>
         </div>
         <button onClick={onResearch} title={`Investigate ${signal.title}`}>
-          <ArrowRight size={16} />
+          Investigate <ArrowRight size={16} />
         </button>
       </div>
     </article>
