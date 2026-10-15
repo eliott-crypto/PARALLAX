@@ -12,7 +12,7 @@ npm install
 npm run dev
 ```
 
-Open http://127.0.0.1:5173. You can also put the key in `.env`; a blank `.env.local` does not override it. Both files stay local. Without an API key, the bundled completed Browserbase investigation can be opened under **Research**. Fresh theme research requires a key. There is currently no bundled completed five-company theme recording; draft themes are not researched shortlists.
+Open http://127.0.0.1:5173. You can also put the key in `.env`; a blank `.env.local` does not override it. Both files stay local. Without an API key, the bundled completed Browserbase investigation can be opened under **Research**. Fresh theme research requires a key. A completed five-company niche shortlist is bundled, with actual Claude execution records and an explicit assisted source audit. Four companies carry historical reported valuations at $100M or below; Arrakis is a larger $140M comparison.
 
 ```sh
 npm test

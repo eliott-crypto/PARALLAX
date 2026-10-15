@@ -103,6 +103,7 @@ async function fixture(
   const instance = createApp({
     store,
     recordings: [],
+    boardRecordings: [],
     configured: () => true,
     boardRunner: overrides.boardRunner || completedBoardRunner,
     runner: overrides.runner || completedRunner,

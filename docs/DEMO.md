@@ -8,7 +8,7 @@ Run `npm install && npm run build && npm start`, then open http://127.0.0.1:3001
 
 Open **Themes**, use **New theme**, choose a specific market change and keep the default **$100M or below** preferred valuation if suitable. **Build my Top 5** starts real research that can take several minutes. Let the run finish before presenting. The preference is not a guarantee: only sourced closed-round valuations qualify, and a board can honestly return fewer than five. **Complete shortlist**, when offered, conducts bounded additional research; it does not fill slots with placeholders.
 
-There is currently **no bundled completed five-company theme recording**. A fresh checkout may show draft themes derived from existing research; a draft is not a finished comparison. The completed real Browserbase investigation under **Research** is bundled and works without a key. Use it for the recorded deep-research segment if a fresh company follow-up is unfinished. Keep it visibly separate from a different theme's candidates.
+A completed five-company niche shortlist is bundled under **Under-the-radar bottlenecks**. Its source history explicitly includes assisted price review. The completed Browserbase case under **Research** supplies the nine-agent correction demo. Both work without a key in the public recorded output.
 
 Check the prepared board's source links and actual number of priced companies. If a company has a world-change chain, pick that one for the click-through. Do not imply missing fields or empty slots are complete.
 
