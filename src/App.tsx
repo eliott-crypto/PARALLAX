@@ -27,6 +27,8 @@ import {
   AlertTriangle,
   Terminal,
   Copy,
+  Orbit,
+  Layers3,
 } from 'lucide-react';
 import type {
   ApiStatus,
@@ -39,6 +41,9 @@ import type {
 import { api, post, dateLabel, readable, sourceCount } from './lib/api';
 import { Brand, CausalMap, OrbitGraphic } from './components/Visuals';
 import InvestigationRoom from './components/InvestigationRoom';
+import ThemeBoardView from './components/ThemeBoard';
+import { ThesisUniverse } from './components/ThesisUniverse';
+import type { ThemeBoard, BoardCandidate } from '../shared/boards';
 import { DomainIdentity } from './components/Identity';
 import {
   summarizeSourceHistory,
@@ -47,11 +52,11 @@ import {
   SOURCE_HISTORY_EXPLANATION,
 } from './lib/source-intelligence';
 
-type Page = 'Discover' | 'Investigations' | 'Saved';
+type Page = 'Themes' | 'Universe' | 'Research';
 const NAV = [
-  { name: 'Discover', description: 'Signals & companies', icon: Radar },
-  { name: 'Investigations', description: 'Research & decisions', icon: Network },
-  { name: 'Saved', description: 'Follow up on a thesis', icon: Bookmark },
+  { name: 'Themes', description: 'Your Top 5 opportunities', icon: Layers3 },
+  { name: 'Universe', description: 'See conviction & fragility', icon: Orbit },
+  { name: 'Research', description: 'Deep investigations', icon: Network },
 ] as const;
 const sectorMatches = (actual: string, selected: string) =>
   selected === 'All sectors' ||
@@ -71,11 +76,18 @@ const SECTORS = [
   'Fintech',
 ];
 export default function App() {
-  const [page, setPage] = useState<Page>('Discover');
+  const [page, setPage] = useState<Page>('Themes');
+  const [boards, setBoards] = useState<ThemeBoard[]>([]);
+  const [boardsLoading, setBoardsLoading] = useState(true);
+  const [boardBusy, setBoardBusy] = useState(false);
+  const [activeBoardId, setActiveBoardId] = useState<string>();
+  const [selectedCandidateId, setSelectedCandidateId] = useState<string>();
+  const [universeBoardId, setUniverseBoardId] = useState<string>();
   const [status, setStatus] = useState<ApiStatus | null>(null);
   const [radar, setRadar] = useState<RadarData | null>(null);
   const [runs, setRuns] = useState<Investigation[]>([]);
   const [current, setCurrent] = useState<Investigation | null>(null);
+  const [returnBoardId, setReturnBoardId] = useState<string>();
   const [sample, setSample] = useState<Investigation | null>(null);
   const [query, setQuery] = useState('');
   const [sector, setSector] = useState('All sectors');
@@ -111,12 +123,28 @@ export default function App() {
     const generation = ++workspaceRefresh.current;
     const startedAt = Date.now();
     const baseline = new Map(runsRef.current.map((run) => [run.id, run]));
-    const [runResult, statusResult] = await Promise.allSettled([
+    const [runResult, statusResult, boardResult] = await Promise.allSettled([
       api<Investigation[]>('/api/investigations'),
       api<ApiStatus>('/api/status'),
+      api<ThemeBoard[]>('/api/boards'),
     ]);
     if (generation !== workspaceRefresh.current) return;
     if (statusResult.status === 'fulfilled') setStatus(statusResult.value);
+    if (boardResult.status === 'fulfilled')
+      setBoards((previous) => [
+        ...previous.filter(
+          (board) =>
+            Date.parse(board.createdAt) >= startedAt &&
+            !boardResult.value.some((incoming) => incoming.id === board.id),
+        ),
+        ...boardResult.value.map((incoming) => {
+          const local = previous.find((board) => board.id === incoming.id);
+          return local && Date.parse(local.updatedAt) > Date.parse(incoming.updatedAt)
+            ? local
+            : incoming;
+        }),
+      ]);
+    setBoardsLoading(false);
     if (runResult.status === 'fulfilled') {
       setRuns((previous) => {
         const localById = new Map(previous.map((run) => [run.id, run]));
@@ -136,15 +164,29 @@ export default function App() {
       });
     }
   }, []);
-  const hasActiveResearch = runs.some((run) => run.status === 'running') || !!status?.activeRuns;
+  const hasActiveResearch =
+    runs.some((run) => run.status === 'running') ||
+    boards.some((board) => board.status === 'running') ||
+    !!status?.activeRuns;
   useEffect(() => {
     if (!hasActiveResearch) return;
-    const interval = setInterval(() => void refreshWorkspace(), 15_000);
+    const interval = setInterval(() => void refreshWorkspace(), 4_000);
     return () => clearInterval(interval);
   }, [hasActiveResearch, refreshWorkspace]);
   useEffect(() => {
     void refreshWorkspace();
     const linkedRunId = new URLSearchParams(window.location.hash.slice(1)).get('investigation');
+    const linkedThemeId = new URLSearchParams(window.location.hash.slice(1)).get('theme');
+    if (new URLSearchParams(window.location.hash.slice(1)).get('view') === 'universe') {
+      setPage('Universe');
+      setUniverseBoardId(linkedThemeId ?? undefined);
+    }
+    if (linkedThemeId && linkedThemeId.length <= 200) {
+      setActiveBoardId(linkedThemeId);
+      setSelectedCandidateId(
+        new URLSearchParams(window.location.hash.slice(1)).get('company') ?? undefined,
+      );
+    }
     if (linkedRunId && linkedRunId.length <= 200) {
       api<Investigation>(`/api/investigations/${encodeURIComponent(linkedRunId)}`)
         .then((run) => {
@@ -180,6 +222,18 @@ export default function App() {
     window.addEventListener('keydown', key);
     return () => window.removeEventListener('keydown', key);
   }, [refreshWorkspace, notify]);
+  useEffect(() => {
+    if (page === 'Universe') {
+      const params = new URLSearchParams({ view: 'universe' });
+      if (universeBoardId) params.set('theme', universeBoardId);
+      window.history.replaceState(null, '', `#${params}`);
+      return;
+    }
+    if (page !== 'Themes' || !activeBoardId) return;
+    const params = new URLSearchParams({ theme: activeBoardId });
+    if (selectedCandidateId) params.set('company', selectedCandidateId);
+    window.history.replaceState(null, '', `#${params}`);
+  }, [page, activeBoardId, selectedCandidateId, universeBoardId]);
   useEffect(() => {
     if (!current || current.status !== 'running') return;
     let source: EventSource | undefined;
@@ -227,15 +281,88 @@ export default function App() {
     window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
     setPage(next);
     setCurrent(null);
+    setActiveBoardId(undefined);
+    setSelectedCandidateId(undefined);
     setSearch('');
     setMobileNav(false);
     void refreshWorkspace();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
-  function openRun(run: Investigation) {
+  const receiveBoard = (board: ThemeBoard) =>
+    setBoards((previous) => [board, ...previous.filter((item) => item.id !== board.id)]);
+  async function createBoard(title: string, thesis: string) {
+    setBoardBusy(true);
+    try {
+      const board = await post<ThemeBoard>('/api/boards', { title, thesis });
+      receiveBoard(board);
+      setActiveBoardId(board.id);
+      setSelectedCandidateId(undefined);
+      return board;
+    } finally {
+      setBoardBusy(false);
+    }
+  }
+  async function reorderBoard(boardId: string, order: string[]) {
+    try {
+      receiveBoard(
+        await api<ThemeBoard>(`/api/boards/${boardId}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ order }),
+        }),
+      );
+    } catch (error) {
+      notify((error as Error).message);
+    }
+  }
+  async function resetBoardOrder(boardId: string) {
+    try {
+      receiveBoard(
+        await api<ThemeBoard>(`/api/boards/${boardId}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ resetOrder: true }),
+        }),
+      );
+    } catch (error) {
+      notify((error as Error).message);
+    }
+  }
+  async function refreshBoard(board: ThemeBoard) {
+    try {
+      receiveBoard(await post<ThemeBoard>(`/api/boards/${board.id}/refresh`));
+    } catch (error) {
+      notify((error as Error).message);
+    }
+  }
+  async function investigateCandidate(
+    board: ThemeBoard,
+    candidate: BoardCandidate,
+    challenge: boolean,
+  ) {
+    try {
+      const result = await post<{ board: ThemeBoard; investigation: Investigation }>(
+        `/api/boards/${board.id}/candidates/${candidate.companyId}/research`,
+        { challenge },
+      );
+      receiveBoard(result.board);
+      setRuns((previous) => [
+        result.investigation,
+        ...previous.filter((run) => run.id !== result.investigation.id),
+      ]);
+      openRun(result.investigation, board.id);
+      notify(
+        challenge
+          ? 'Red Team is testing the claim that could break this thesis.'
+          : 'A full research team is investigating this company.',
+      );
+    } catch (error) {
+      notify((error as Error).message);
+    }
+  }
+  function openRun(run: Investigation, fromBoardId?: string) {
+    setReturnBoardId(fromBoardId);
     window.history.replaceState(null, '', `#${new URLSearchParams({ investigation: run.id })}`);
     setCurrent(run);
-    setPage('Investigations');
+    setPage('Research');
     setModal(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -378,9 +505,9 @@ export default function App() {
     new Map((radar?.signals ?? []).flatMap((s) => s.companies).map((c) => [c.id, c])).values(),
   );
   const watched = runs.filter((r) => r.watched);
-  const active = status?.activeRuns ?? runs.filter((r) => r.status === 'running').length;
+  const active = runs.filter((r) => r.status === 'running').length;
   const latestActive = runs.find((run) => run.status === 'running');
-  const shownRuns = (page === 'Saved' ? watched : runs).filter((r) =>
+  const shownRuns = runs.filter((r) =>
     `${r.title} ${r.query}`.toLowerCase().includes(search.toLowerCase()),
   );
   const heroSignal = signals[0] ?? radar?.signals[0];
@@ -439,10 +566,8 @@ export default function App() {
                 <strong>{name}</strong>
                 <small className="nav-description">{description}</small>
               </span>
-              {name === 'Investigations' && active > 0 && (
-                <span className="nav-count">{active}</span>
-              )}
-              {name === 'Saved' && watched.length > 0 && (
+              {name === 'Research' && active > 0 && <span className="nav-count">{active}</span>}
+              {name === 'Universe' && watched.length > 0 && (
                 <span className="nav-count">{watched.length}</span>
               )}
             </button>
@@ -491,7 +616,13 @@ export default function App() {
             <InvestigationRoom
               key={current.id}
               investigation={current}
-              onBack={() => navigate('Investigations')}
+              onBack={() => {
+                if (returnBoardId) {
+                  setCurrent(null);
+                  setActiveBoardId(returnBoardId);
+                  setPage('Themes');
+                } else navigate('Research');
+              }}
               onEvidence={(ids) => openSources(ids, current.evidence)}
               onWatch={() => updateWatch(current)}
               onRecheck={() => recheck(current)}
@@ -501,37 +632,19 @@ export default function App() {
             />
           ) : (
             <>
-              <div className="page-heading">
-                <div>
-                  <div className="eyebrow">
-                    {page === 'Discover'
-                      ? '01 / DISCOVER'
-                      : page === 'Investigations'
-                        ? '02 / INVESTIGATE'
-                        : '03 / FOLLOW UP'}
+              {page === 'Research' && (
+                <div className="page-heading">
+                  <div>
+                    <div className="eyebrow">DEEP RESEARCH</div>
+                    <h1>Behind every conviction.</h1>
+                    <p>Inspect the full team, evidence and decision from each investigation.</p>
                   </div>
-                  <h1>
-                    {page === 'Discover'
-                      ? 'What changed. Who benefits.'
-                      : page === 'Saved'
-                        ? 'The theses you’re following.'
-                        : 'Your research. Clear decisions.'}
-                  </h1>
-                  <p className="page-purpose">
-                    {page === 'Discover'
-                      ? 'Read the signal, inspect the sources, then investigate a company.'
-                      : page === 'Saved'
-                        ? 'Recheck a saved thesis when you want fresh evidence. Nothing runs in the background.'
-                        : 'All active and completed investigations in one place. Open one to see its findings and sources.'}
-                  </p>
-                </div>
-                <div className="heading-actions">
                   <button className="button primary" onClick={() => prepareResearch()}>
                     <Plus size={16} />
                     New investigation
                   </button>
                 </div>
-              </div>
+              )}
               {error && (
                 <div className="error-banner">
                   <AlertTriangle size={16} />
@@ -546,342 +659,68 @@ export default function App() {
                   </button>
                 </div>
               )}
-              {page === 'Discover' && (
-                <>
-                  <div className="sample-context" role="status">
-                    <span className={`status-dot ${radar?.mode === 'live' ? 'connected' : ''}`} />
-                    <span>
-                      {loading
-                        ? 'Loading research…'
-                        : radar?.mode === 'live'
-                          ? 'Live research results'
-                          : 'Curated research sample'}
-                    </span>
-                    <span className="context-divider">/</span>
-                    <span>
-                      {radar?.mode === 'live'
-                        ? `Retrieved ${dateLabel(radar.updatedAt)}`
-                        : 'Historical catalysts · real sources · illustrative theses'}
-                    </span>
-                  </div>
-                  {radar?.warning && <div className="subtle-notice">{radar.warning}</div>}
-                  {page === 'Discover' && latestActive && (
-                    <button className="active-run-banner" onClick={() => openRun(latestActive)}>
-                      <span className="status-dot active" />
-                      <span>
-                        <b>Research in progress</b> {latestActive.title}
-                      </span>
-                      <span>
-                        Open investigation <ArrowUpRight size={13} />
-                      </span>
-                    </button>
-                  )}
-                  <div className="section-heading">
-                    <div>
-                      <h2>
-                        Signal radar{' '}
-                        <span className="subtle-badge">
-                          {radar?.mode === 'live' ? 'RESEARCHED' : 'SAMPLE'}
-                        </span>
-                      </h2>
-                      <p>Changes worth a closer look.</p>
-                    </div>
-                    <div className="section-controls">
-                      <div className="select-wrap">
-                        <SlidersHorizontal size={13} />
-                        <select
-                          aria-label="Filter by sector"
-                          value={sector}
-                          onChange={(e) => setSector(e.target.value)}
-                        >
-                          {SECTORS.map((s) => (
-                            <option key={s}>{s}</option>
-                          ))}
-                        </select>
-                        <ChevronDown size={12} />
-                      </div>
-                      <button className="button small ghost" onClick={scan} disabled={scanLoading}>
-                        {scanLoading ? (
-                          <LoaderCircle size={14} className="spinning" />
-                        ) : (
-                          <RefreshCw size={14} />
-                        )}{' '}
-                        {scanLoading ? 'Scanning sources…' : 'Scan for signals'}
-                      </button>
-                    </div>
-                  </div>
-                  {page === 'Discover' && (
-                    <div className="radar-search">
-                      <Search size={17} />
-                      <input
-                        placeholder="Search signals, companies or a research theme…"
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                      />
-                      {search && (
-                        <button className="icon-button" onClick={() => setSearch('')}>
-                          <X size={15} />
-                        </button>
-                      )}
-                    </div>
-                  )}
-                  {scanLoading && (
-                    <div className="scan-progress">
-                      <span className="scan-progress-line" />
-                      <Radar size={19} />
-                      <div>
-                        <strong>The Scout is researching public sources.</strong>
-                        <p>
-                          A live scan can take a minute. Signals will appear with their supporting
-                          citations.
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                  <div className="signal-grid">
-                    {loading || scanLoading ? (
-                      <>
-                        {[0, 1, 2].map((i) => (
-                          <div className="panel skeleton" key={i} />
-                        ))}
-                      </>
-                    ) : signals.length ? (
-                      signals
-                        .slice(0, 6)
-                        .map((signal, i) => (
-                          <SignalCard
-                            key={signal.id}
-                            signal={signal}
-                            evidence={evidence.filter((entry) =>
-                              signal.evidenceIds.includes(entry.id),
-                            )}
-                            sourceTotal={sourceCount(
-                              evidence.filter((entry) => signal.evidenceIds.includes(entry.id)),
-                            )}
-                            index={i}
-                            onOpen={() => setSelectedSignal(signal)}
-                            onResearch={() => prepareResearch(signal, signal.companies[0])}
-                          />
-                        ))
-                    ) : (
-                      <div className="panel empty-state">
-                        <Radar size={25} />
-                        <h3>No signals match this filter.</h3>
-                        <p>Try another sector or scan for new evidence.</p>
-                        <button
-                          className="button ghost"
-                          onClick={() => {
-                            setSector('All sectors');
-                            setSearch('');
-                          }}
-                        >
-                          Reset filters
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                  {page === 'Discover' && (
-                    <>
-                      <div className="analysis-grid">
-                        <section className="panel causal-panel">
-                          <div className="panel-heading">
-                            <div>
-                              <h3>From signal to opportunity</h3>
-                              <p>Follow the second-order effects.</p>
-                            </div>
-                            <button
-                              className="icon-button"
-                              title="Explore causal thesis"
-                              onClick={() => heroSignal && setSelectedSignal(heroSignal)}
-                            >
-                              <ArrowUpRight size={17} />
-                            </button>
-                          </div>
-                          <CausalMap
-                            signal={heroSignal}
-                            onInvestigate={() =>
-                              heroSignal && prepareResearch(heroSignal, heroSignal.companies[0])
-                            }
-                          />
-                          <div className="causal-legend">
-                            <span>
-                              <i className="color-dot" style={{ background: '#8bc7bd' }} />
-                              Verified trigger
-                            </span>
-                            <span>
-                              <i className="color-dot" style={{ background: '#b3a0dd' }} />
-                              Reasoned hypothesis
-                            </span>
-                            <span>Every link can be challenged.</span>
-                          </div>
-                        </section>
-                        <section className="panel evidence-panel">
-                          <div className="panel-heading">
-                            <div>
-                              <h3>Read what the research is based on</h3>
-                              <p>Original reporting, company claims and independent checks.</p>
-                            </div>
-                            <button
-                              className="icon-button"
-                              title="Open evidence library"
-                              onClick={() => openSources()}
-                            >
-                              <ArrowUpRight size={17} />
-                            </button>
-                          </div>
-                          <div className="source-strip">
-                            {Array.from(
-                              new Map(
-                                evidence.map((entry) => [new URL(entry.url).hostname, entry]),
-                              ).values(),
-                            )
-                              .slice(0, 4)
-                              .map((entry) => (
-                                <button
-                                  className="source-chip"
-                                  key={entry.id}
-                                  onClick={() =>
-                                    openSources(
-                                      evidence
-                                        .filter(
-                                          (item) =>
-                                            new URL(item.url).hostname ===
-                                            new URL(entry.url).hostname,
-                                        )
-                                        .map((item) => item.id),
-                                    )
-                                  }
-                                >
-                                  <DomainIdentity
-                                    url={entry.url}
-                                    name={sourceName(entry.url, entry.publisher)}
-                                    size={36}
-                                  />
-                                  <span>
-                                    <strong>{sourceName(entry.url, entry.publisher)}</strong>
-                                    <small>
-                                      {entry.type === 'FIRST_PARTY_COMPANY_CLAIM'
-                                        ? 'Company claim'
-                                        : readable(entry.type)}
-                                    </small>
-                                  </span>
-                                  <ArrowUpRight size={15} />
-                                </button>
-                              ))}
-                          </div>
-                          <button className="panel-bottom-link" onClick={() => openSources()}>
-                            Inspect all {sourceCount(evidence)} sources <ArrowUpRight size={14} />
-                          </button>
-                        </section>
-                      </div>
-                      <div className="bottom-grid">
-                        <section className="panel companies-panel">
-                          <div className="panel-heading">
-                            <div>
-                              <h3>Companies on the horizon</h3>
-                              <p>Discovered through the thesis, not the other way around.</p>
-                            </div>
-                            <span className="subtle-badge">{companies.length} COMPANIES</span>
-                          </div>
-                          <div className="company-table">
-                            <div className="company-table-head">
-                              <span>COMPANY / CATEGORY</span>
-                              <span>WHY IT COULD BENEFIT</span>
-                              <span>RESEARCH</span>
-                            </div>
-                            {companies.slice(0, 4).map((c) => (
-                              <div className="company-row" key={c.id}>
-                                <div className="company-identity">
-                                  <DomainIdentity url={c.website} name={c.name} size={42} />
-                                  <div>
-                                    <a href={c.website} target="_blank" rel="noopener noreferrer">
-                                      {c.name}
-                                      <ArrowUpRight size={11} />
-                                    </a>
-                                    <small>{c.category}</small>
-                                  </div>
-                                </div>
-                                <p>{c.alignment.replace(/^Related Scout finding:[\s\S]*?\)\.\s*/, '')}</p>
-                                <button
-                                  className="icon-button company-investigate"
-                                  title={`Investigate ${c.name}`}
-                                  onClick={() =>
-                                    prepareResearch(
-                                      (radar?.signals ?? []).find((s) =>
-                                        s.companies.some((x) => x.id === c.id),
-                                      ),
-                                      c,
-                                    )
-                                  }
-                                >
-                                  <ArrowUpRight size={17} />
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                        </section>
-                        <section className="panel source-feed">
-                          <div className="panel-heading">
-                            <div>
-                              <h3>Source history</h3>
-                              <p>How our use of each source has held up.</p>
-                            </div>
-                            <ShieldCheck size={21} />
-                          </div>
-                          <div className="source-audit-grid">
-                            {sourceHistory.slice(0, 4).map((source) => (
-                              <button
-                                className="publisher-card"
-                                key={source.domain}
-                                onClick={() =>
-                                  openSources(
-                                    undefined,
-                                    runs
-                                      .filter((run) => run.mode !== 'sample')
-                                      .flatMap((run) => run.evidence)
-                                      .concat(evidence)
-                                      .filter(
-                                        (entry) => publicSourceDomain(entry.url) === source.domain,
-                                      ),
-                                  )
-                                }
-                              >
-                                <DomainIdentity
-                                  url={source.url}
-                                  name={sourceName(source.url, source.publisher)}
-                                  size={36}
-                                />
-                                <span>
-                                  <strong>{sourceName(source.url, source.publisher)}</strong>
-                                  <small>
-                                    {source.investigationCount} investigations · {source.corrected}{' '}
-                                    interpretation corrections
-                                  </small>
-                                  <small className="source-audit-stats">
-                                    <span>{source.supported} supported</span>
-                                    <span>{source.partial + source.unverified} unresolved</span>
-                                    <span>{source.contradicted} contradicted</span>
-                                  </small>
-                                </span>
-                                <span className={`badge ${source.corrected ? 'rose' : ''}`}>
-                                  {source.status}
-                                </span>
-                              </button>
-                            ))}
-                          </div>
-                          <p className="source-audit-note">{SOURCE_HISTORY_EXPLANATION}</p>
-                        </section>
-                      </div>
-                    </>
-                  )}
-                </>
+              {page === 'Themes' && (
+                <ThemeBoardView
+                  boards={boards}
+                  activeBoardId={activeBoardId}
+                  selectedCandidateId={selectedCandidateId}
+                  loading={boardsLoading}
+                  busy={boardBusy}
+                  onSelect={(id) => {
+                    setActiveBoardId(id);
+                    setSelectedCandidateId(undefined);
+                    if (!id) window.history.replaceState(null, '', window.location.pathname);
+                  }}
+                  onOpenResearch={(id) => {
+                    const run = runs.find((run) => run.id === id);
+                    if (run) openRun(run, activeBoardId);
+                    else
+                      api<Investigation>(`/api/investigations/${id}`)
+                        .then((run) => openRun(run, activeBoardId))
+                        .catch((error) => notify(error.message));
+                  }}
+                  onCancel={(board) =>
+                    post<ThemeBoard>(`/api/boards/${board.id}/cancel`)
+                      .then(receiveBoard)
+                      .catch((error) => notify(error.message))
+                  }
+                  onCreate={createBoard}
+                  onReorder={reorderBoard}
+                  onResetOrder={(board) => resetBoardOrder(board.id)}
+                  onRescan={refreshBoard}
+                  onEvidence={(ids, ev) => openSources(ids, ev)}
+                  onInvestigate={(candidate, board) =>
+                    investigateCandidate(board, candidate, false)
+                  }
+                  onChallenge={(board, candidate) => investigateCandidate(board, candidate, true)}
+                  onOpenUniverse={(board) => {
+                    setUniverseBoardId(board.id);
+                    setPage('Universe');
+                  }}
+                />
               )}
-              {(page === 'Investigations' || page === 'Saved') && (
+              {page === 'Universe' && (
+                <ThesisUniverse
+                  boards={boards}
+                  selectedBoardId={universeBoardId}
+                  onSelectBoard={setUniverseBoardId}
+                  onOpenCandidate={(boardId, candidateId) => {
+                    setActiveBoardId(boardId);
+                    setSelectedCandidateId(candidateId);
+                    setPage('Themes');
+                  }}
+                  onInvestigate={() => {
+                    setActiveBoardId(undefined);
+                    setPage('Themes');
+                  }}
+                />
+              )}
+              {page === 'Research' && (
                 <>
                   <div className="investigation-toolbar">
                     <div className="tabs">
                       <button className="selected">
-                        {page === 'Saved' ? 'Saved theses' : 'All investigations'}
+                        All investigations
                         <span>{shownRuns.length}</span>
                       </button>
                     </div>
@@ -894,15 +733,6 @@ export default function App() {
                       />
                     </div>
                   </div>
-                  {page === 'Saved' && (
-                    <div className="watchtower-notice">
-                      <Telescope size={19} />
-                      <span>
-                        <b>Conviction evolves with evidence.</b> Recheck a saved thesis to launch
-                        fresh research and compare assumptions. Checks run when you request them.
-                      </span>
-                    </div>
-                  )}
                   {shownRuns.length ? (
                     <div className="investigation-list">
                       {shownRuns.map((run) => (
@@ -969,19 +799,19 @@ export default function App() {
                     <div className="panel research-empty">
                       <OrbitGraphic />
                       <div className="eyebrow">
-                        {page === 'Saved'
+                        {false
                           ? 'A PLACE FOR YOUR CONVICTION'
                           : 'RESEARCH WITH A DIFFERENT PERSPECTIVE'}
                       </div>
                       <h2>
                         {search
                           ? 'No matching investigations.'
-                          : page === 'Saved'
+                          : false
                             ? 'Keep your best theses in view.'
                             : 'Your next thesis starts with a question.'}
                       </h2>
                       <p>
-                        {page === 'Saved'
+                        {false
                           ? 'Save a completed investigation to follow its assumptions and recheck when the world changes.'
                           : 'Give nine independent agents a signal or a company. Watch them build, challenge and verify the investment case.'}
                       </p>
@@ -1279,29 +1109,35 @@ export default function App() {
                   <kbd>ESC</kbd>
                 </div>
                 <div className="search-results">
-                  <div className="nav-caption">SIGNALS & COMPANIES</div>
-                  {signals.slice(0, 5).map((s) => (
-                    <button
-                      key={s.id}
-                      onClick={() => {
-                        setModal(null);
-                        setSelectedSignal(s);
-                      }}
-                    >
-                      <Radar size={17} />
-                      <div>
-                        <strong>{s.title}</strong>
-                        <small>
-                          {s.sector} ·{' '}
-                          {sourceCount(
-                            evidence.filter((entry) => s.evidenceIds.includes(entry.id)),
-                          )}{' '}
-                          sources
-                        </small>
-                      </div>
-                      <ArrowUpRight size={15} />
-                    </button>
-                  ))}
+                  <div className="nav-caption">THEMES & SHORTLISTS</div>
+                  {boards
+                    .filter((board) =>
+                      `${board.title} ${board.thesis} ${board.candidates.map((candidate) => candidate.company.name).join(' ')}`
+                        .toLowerCase()
+                        .includes(search.toLowerCase()),
+                    )
+                    .slice(0, 5)
+                    .map((board) => (
+                      <button
+                        key={board.id}
+                        onClick={() => {
+                          setCurrent(null);
+                          setPage('Themes');
+                          setActiveBoardId(board.id);
+                          setSelectedCandidateId(undefined);
+                          setModal(null);
+                        }}
+                      >
+                        <Layers3 size={17} />
+                        <div>
+                          <strong>{board.title}</strong>
+                          <small>
+                            {board.candidates.length}/5 priced startups · {readable(board.status)}
+                          </small>
+                        </div>
+                        <ArrowUpRight size={15} />
+                      </button>
+                    ))}
                   <div className="nav-caption">INVESTIGATIONS</div>
                   {runs
                     .filter((r) =>
@@ -1573,78 +1409,5 @@ export default function App() {
         </div>
       )}
     </div>
-  );
-}
-function SignalCard({
-  signal,
-  sourceTotal,
-  evidence,
-  index,
-  onOpen,
-  onResearch,
-}: {
-  signal: Signal;
-  sourceTotal: number;
-  evidence: Evidence[];
-  index: number;
-  onOpen: () => void;
-  onResearch: () => void;
-}) {
-  return (
-    <article className={`panel signal-card signal-${index % 3}`}>
-      <button className="signal-card-content" onClick={onOpen}>
-        <div className="signal-card-top">
-          <span className="sector-label">
-            <span className="sector-dot" />
-            {signal.sector}
-          </span>
-          <ArrowUpRight size={17} />
-        </div>
-        <div className="signal-publisher-row">
-          {Array.from(
-            new Map(evidence.map((entry) => [publicSourceDomain(entry.url), entry])).values(),
-          )
-            .slice(0, 2)
-            .map((entry) => (
-              <span className="signal-publisher" key={entry.id}>
-                <DomainIdentity
-                  url={entry.url}
-                  name={sourceName(entry.url, entry.publisher)}
-                  size={28}
-                />
-                <span>{sourceName(entry.url, entry.publisher)}</span>
-              </span>
-            ))}
-        </div>
-        <div className="signal-date">
-          SIGNAL 0{index + 1}
-          <span>{dateLabel(signal.date)}</span>
-        </div>
-        <h3>{signal.title}</h3>
-        <p>{signal.summary}</p>
-        <div className="signal-metadata">
-          <span>
-            <BookOpen size={12} />
-            {sourceTotal} sources
-          </span>
-          <span className="confidence-label">{readable(signal.confidence)} confidence</span>
-        </div>
-      </button>
-      <div className="signal-card-footer">
-        <div className="signal-company-group">
-          {signal.companies.slice(0, 3).map((c) => (
-            <DomainIdentity key={c.id} url={c.website} name={c.name} size={25} />
-          ))}
-          <span>
-            {signal.companies.length
-              ? signal.companies.map((company) => company.name).join(' · ')
-              : 'Beneficiaries not yet verified'}
-          </span>
-        </div>
-        <button onClick={onResearch} title={`Investigate ${signal.title}`}>
-          Investigate <ArrowRight size={16} />
-        </button>
-      </div>
-    </article>
   );
 }

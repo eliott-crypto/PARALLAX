@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { BoardAssessmentSchema } from './boards.js';
 export const ConfidenceSchema = z.enum(['HIGH', 'MEDIUM', 'LOW', 'INSUFFICIENT']);
 export type Confidence = z.infer<typeof ConfidenceSchema>;
 export const EvidenceSchema = z.object({
@@ -106,6 +107,7 @@ export const AgentOutputSchema = z.object({
   findings: z.array(FindingSchema),
   evidence: z.array(EvidenceSchema).default([]),
   companies: z.array(CompanySchema).max(3).optional(),
+  shortlist: z.array(BoardAssessmentSchema).max(5).optional(),
   causalChain: z.array(CausalLinkSchema).optional(),
   questions: z.array(z.string()).default([]),
   corrections: z.array(EvidenceCorrectionSchema).optional(),
