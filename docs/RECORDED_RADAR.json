@@ -1,0 +1,203 @@
+{
+  "kind": "recorded-radar",
+  "label": "Saved real Claude research; not a currently running scan",
+  "savedAt": "2026-10-15T12:22:18.504Z",
+  "radar": {
+    "signals": [
+      {
+        "id": "live-5d0b21f8-2b54-40da-9da1-0da6f764a626",
+        "title": "Chainguard launches Harness: Claude Mythos 5.1 vulnerability hunting on live app builds, beta waitlist",
+        "sector": "Cybersecurity",
+        "summary": "Chainguard says Harness builds an app from source, boots it in an isolated microVM with no egress or credentials, and has the model probe it. It is in beta with a waitlist. Capability claims are vendor statements, not independently tested.",
+        "whyNow": "Chainguard says Harness builds an app from source, boots it in an isolated microVM with no egress or credentials, and has the model probe it. It is in beta with a waitlist. Capability claims are vendor statements, not independently tested.",
+        "date": "2026-10-14",
+        "confidence": "MEDIUM",
+        "evidenceIds": [
+          "radar-scout-7eb521e12a22",
+          "radar-scout-7e3bb54728d7"
+        ],
+        "sourceCount": 2,
+        "causalChain": [
+          {
+            "label": "AI coding tools increase code and open-source volume (vendor-stated premise)",
+            "status": "REASONED HYPOTHESIS",
+            "evidenceIds": [
+              "radar-scout-7eb521e12a22"
+            ]
+          },
+          {
+            "label": "Chainguard launches Harness, Workspaces and Checks in beta on Oct 14, 2026",
+            "status": "VERIFIED",
+            "evidenceIds": [
+              "radar-scout-7eb521e12a22",
+              "radar-scout-b8ba960c4807"
+            ]
+          },
+          {
+            "label": "Buyers may seek unified trust, sandboxing and verification for agent-written code, creating demand for platforms and adjacent niches",
+            "status": "SPECULATIVE",
+            "evidenceIds": [
+              "radar-scout-7e3bb54728d7"
+            ]
+          }
+        ],
+        "companies": [],
+        "uncertainty": "What independent testing, customer results, or pricing exist for Harness, and which models does it run for customers without Mythos access?"
+      },
+      {
+        "id": "live-edfdbaa1-bfc6-46f6-887d-221ff62d52bb",
+        "title": "Independent coverage flags undisclosed details behind Harness's findings",
+        "sector": "Cybersecurity",
+        "summary": "The New Stack reports that Chainguard has not disclosed which models serve customers without Mythos access. It also has not disclosed the affected projects, the flaws, or their remediation status. Efficacy, false-positive rates, and pricing are therefore unknown, so no measured results can be cited.",
+        "whyNow": "The New Stack reports that Chainguard has not disclosed which models serve customers without Mythos access. It also has not disclosed the affected projects, the flaws, or their remediation status. Efficacy, false-positive rates, and pricing are therefore unknown, so no measured results can be cited.",
+        "date": "Publication date unknown",
+        "confidence": "MEDIUM",
+        "evidenceIds": [
+          "radar-scout-7e3bb54728d7"
+        ],
+        "sourceCount": 1,
+        "causalChain": [],
+        "companies": [],
+        "uncertainty": "How many customers have moved from Containers to Workspaces, Checks, or Harness? No such data was retrieved."
+      },
+      {
+        "id": "live-d9d82200-1b5b-4e34-8288-ee9c4d179565",
+        "title": "Workspaces beta runs coding agents in remote microVMs with credentials kept outside sessions",
+        "sector": "Cybersecurity",
+        "summary": "RuntimeWire reports that Workspaces, announced Oct 14, 2026, separates developers and agents into remote Linux microVMs with configurable network limits. The preview is not recommended for production. Chainguard is extending from artifact supply into agent execution environments; the security model is unproven.",
+        "whyNow": "RuntimeWire reports that Workspaces, announced Oct 14, 2026, separates developers and agents into remote Linux microVMs with configurable network limits. The preview is not recommended for production. Chainguard is extending from artifact supply into agent execution environments; the security model is unproven.",
+        "date": "2026-10-14",
+        "confidence": "MEDIUM",
+        "evidenceIds": [
+          "radar-scout-b8ba960c4807",
+          "radar-scout-7eb521e12a22"
+        ],
+        "sourceCount": 2,
+        "causalChain": [],
+        "companies": [
+          {
+            "id": "e2b",
+            "name": "E2B",
+            "website": "https://e2b.dev/",
+            "description": "Open-source, hosted microVM sandbox runtime where each AI agent session gets an isolated machine, per its own site.",
+            "category": "AI agent sandbox infrastructure",
+            "alignment": "Related Scout finding: \"Workspaces beta runs coding agents in remote microVMs with credentials kept outside sessions\" (radar-scout-b8ba960c4807, radar-scout-7eb521e12a22). E2B offers a comparable isolated-microVM-per-agent primitive. If Chainguard's launch raises buyer attention to agent isolation, E2B may be positioned to benefit. This is a hypothesis, not demonstrated.",
+            "strengths": [
+              "Official site describes per-session microVM isolation and an Apache-2.0 open-source runtime",
+              "Offers deployment in the customer's own AWS, GCP or Azure account, per company marketing"
+            ],
+            "uncertainty": "Private or early-stage status, funding, customer count, revenue and security efficacy were not verified. Chainguard may compete directly. Isolation claims are vendor statements and were not independently tested.",
+            "confidence": "LOW",
+            "evidenceIds": [
+              "radar-hunter-e247da546003",
+              "radar-scout-b8ba960c4807",
+              "radar-scout-7eb521e12a22"
+            ]
+          },
+          {
+            "id": "microsandbox",
+            "name": "Microsandbox (Super Rad Company)",
+            "website": "https://github.com/superradcompany/microsandbox",
+            "description": "Open-source, local-first microVM runtime and library for running untrusted workloads, including AI agents, CI jobs and plugins, per its official repository.",
+            "category": "Local microVM runtime for agents",
+            "alignment": "Related Scout finding: \"Workspaces beta runs coding agents in remote microVMs with credentials kept outside sessions\" (radar-scout-b8ba960c4807, radar-scout-7eb521e12a22). Microsandbox offers a self-hosted, local alternative to remote agent microVMs. It may suit buyers who want isolation on their own machines. This is a reasoned hypothesis only.",
+            "strengths": [
+              "Official repository positions it for coding agents, CI jobs and browser agents",
+              "Local-first design contrasts with Chainguard's remote Workspaces"
+            ],
+            "uncertainty": "Only the GitHub organisation was retrieved. The standalone domain was not verified from an official page. Corporate stage, funding, team, commercial offering and adoption are unknown.",
+            "confidence": "LOW",
+            "evidenceIds": [
+              "radar-hunter-253a2b2d28ec",
+              "radar-scout-b8ba960c4807",
+              "radar-scout-7eb521e12a22"
+            ]
+          }
+        ],
+        "uncertainty": "Which competitors offer agent sandboxing or CI attestation, and how do their capabilities compare? None were retrieved."
+      }
+    ],
+    "evidence": [
+      {
+        "id": "radar-scout-7eb521e12a22",
+        "claim": "Chainguard announced Harness, Workspaces, Checks, MCP and Libraries expansion (Go, .NET) on Oct 14, 2026; Harness, Workspaces and Checks are in beta.",
+        "url": "https://www.chainguard.dev/unchained/everything-we-announced-at-chainguard-assemble-london-2026",
+        "title": "Everything we announced at Chainguard Assemble London 2026",
+        "publisher": "chainguard.dev",
+        "publishedAt": "2026-10-14",
+        "retrievedAt": "2026-10-15T12:18:37.405Z",
+        "summary": "Vendor roundup of the October 14, 2026 launches. Describes Harness's isolated microVM approach and says Harness, Workspaces and Checks are in beta with open waitlists. Marketing claims, not independently validated.",
+        "type": "FIRST_PARTY_COMPANY_CLAIM",
+        "status": "SUPPORTED",
+        "company": "Chainguard"
+      },
+      {
+        "id": "radar-scout-7e3bb54728d7",
+        "claim": "Independent coverage says Harness's model routing, affected projects, flaws and remediation status are undisclosed.",
+        "url": "https://thenewstack.io/chainguard-mythos-security-harness/",
+        "title": "66% of billion-dollar companies leave critical bugs unpatched — the part the AI bug-hunting hype leaves out - The New Stack",
+        "publisher": "thenewstack.io",
+        "publishedAt": null,
+        "retrievedAt": "2026-10-15T12:18:37.405Z",
+        "summary": "Reports Harness is a four-product launch with Workspaces, Checks and Libraries. Notes Chainguard hasn't disclosed which models serve customers without Mythos access, nor details of its claimed findings. Exact publication date not shown in the retrieved text.",
+        "type": "INDEPENDENT_REPORT",
+        "status": "SUPPORTED",
+        "company": "Chainguard"
+      },
+      {
+        "id": "radar-scout-b8ba960c4807",
+        "claim": "Chainguard announced Workspaces on Oct 14, 2026, a beta that runs developers and coding agents in separate remote microVMs.",
+        "url": "https://runtimewire.com/article/chainguard-workspaces-coding-agents-microvms",
+        "title": "Chainguard moves coding agents into remote microVMs with credentials kept outside",
+        "publisher": "runtimewire.com",
+        "publishedAt": null,
+        "retrievedAt": "2026-10-15T12:18:37.405Z",
+        "summary": "Describes the Workspaces beta: isolated Linux microVMs, long-lived credentials kept outside sessions, configurable network restrictions. The preview is not recommended for production, so adoption and the security model remain unproven.",
+        "type": "INDEPENDENT_REPORT",
+        "status": "SUPPORTED",
+        "company": "Chainguard"
+      },
+      {
+        "id": "radar-hunter-e247da546003",
+        "claim": "E2B's official site describes an open-source (Apache-2.0) hosted microVM sandbox platform giving each agent session an isolated machine.",
+        "url": "https://e2b.dev/",
+        "title": "E2B",
+        "publisher": "e2b.dev",
+        "publishedAt": null,
+        "retrievedAt": "2026-10-15T12:19:08.116Z",
+        "summary": "Company homepage. Describes isolated microVM per agent session, deployable in E2B's cloud or the customer's AWS, GCP or Azure account. Marketing claims. No funding, customer or revenue data on the retrieved page.",
+        "type": "FIRST_PARTY_COMPANY_CLAIM",
+        "status": "SUPPORTED",
+        "company": "E2B"
+      },
+      {
+        "id": "radar-hunter-253a2b2d28ec",
+        "claim": "Microsandbox's official GitHub repository describes a local-first microVM runtime for untrusted workloads such as AI agents and CI jobs.",
+        "url": "https://github.com/superradcompany/microsandbox",
+        "title": "GitHub - superradcompany/microsandbox: 🧱 easy, fast, programmable and local-first microVM runtime and library · GitHub",
+        "publisher": "github.com",
+        "publishedAt": null,
+        "retrievedAt": "2026-10-15T12:19:08.116Z",
+        "summary": "Official repository under the superradcompany organisation. Describes local microVMs for agents, user code, plugins and CI jobs, with guides for coding agents. Mentions docs.microsandbox.dev. No funding or customer data.",
+        "type": "FIRST_PARTY_COMPANY_CLAIM",
+        "status": "SUPPORTED",
+        "company": "Microsandbox"
+      },
+      {
+        "id": "radar-hunter-6713f874780d",
+        "claim": "Tech.eu reports RevEng.AI raised a $15M Series A led by NATO Innovation Fund for binary-level software supply chain verification.",
+        "url": "https://tech.eu/2026/05/27/revengai-raises-15m-to-secure-ai-generated-software/",
+        "title": "RevEng.AI raises $15M to secure AI-generated software - Tech.eu",
+        "publisher": "tech.eu",
+        "publishedAt": "2026-05-27",
+        "retrievedAt": "2026-10-15T12:19:08.116Z",
+        "summary": "Independent report on a Series A for RevEng.AI, a binary-native verification layer for compiled software. It cites the CEO's views on AI-generated code. Official company domain not retrieved. Outside the 90-day window, and no efficacy or adoption data.",
+        "type": "INDEPENDENT_REPORT",
+        "status": "SUPPORTED",
+        "company": "RevEng.AI"
+      }
+    ],
+    "mode": "live",
+    "updatedAt": "2026-10-15T12:19:08.118Z"
+  }
+}

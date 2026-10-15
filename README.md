@@ -42,17 +42,18 @@ Scout → Causal Analyst → Company Hunter
 
 The frontend subscribes to server-sent events containing actual run state. Parallel stages share structured findings and admitted evidence. Search results are independently identifiable sources, not model-generated URLs. Research confidence describes evidence quality; it does not predict investment returns.
 
-The server stores investigations and the latest radar in ignored `.data/research.json` via atomic replacement. A restart preserves completed findings and marks interrupted runs partial. Completed real runs can be reopened as recorded investigations. Watchtower rechecks are **on demand**, with no claim of background scheduling.
+The server stores investigations and the latest radar in ignored `.data/research.json` via atomic replacement. A restart preserves completed findings and marks interrupted runs partial. Completed real runs can be reopened as recorded investigations. Public-source recorded fixtures in `recordings/` make the demonstration available in a fresh checkout without an API key. A full live investigation can take several minutes; use a recorded run for a three-minute presentation. Watchtower rechecks are **on demand**, with no claim of background scheduling.
 
 ## Environment
 
 - `ANTHROPIC_API_KEY`: required only for live research; read by the server from `.env.local` or `.env`, never sent to the browser.
-- `ANTHROPIC_MODEL`: defaults to `claude-sonnet-4-6`.
+- `ANTHROPIC_MODEL`: defaults to `claude-sonnet-5-5`.
 - `APP_ORIGIN`: optional exact HTTPS origin for a deployment behind a reverse proxy.
+- `ANTHROPIC_COMMITTEE_MODEL`: optional stronger model for committee synthesis; the example selects `claude-opus-5-5`.
 - `PORT`: defaults to `3001`.
 - `HOST`: defaults to loopback `127.0.0.1`; use `0.0.0.0` only in a protected deployment.
-- `MAX_INVESTIGATION_SECONDS`: defaults to 480; bounded at 30–1800.
-- `MAX_INVESTIGATION_TOKENS`: bounded research token budget.
+- `MAX_INVESTIGATION_SECONDS`: defaults to 720; bounded at 30–1800.
+- `MAX_INVESTIGATION_TOKENS`: defaults to 400,000 total input/output tokens, including research tool input.
 - `MAX_RESEARCH_RUNS_PER_HOUR`: defaults to 20. At most two deep investigations run concurrently.
 
 Search uses Anthropic's basic [`web_search_20250305`](https://platform.claude.com/docs/en/agents-and-tools/tool-use/web-search-tool), with per-agent search limits. The API organisation must have web search enabled. API errors, cancellation, partial findings, and missing credentials have explicit UI states.

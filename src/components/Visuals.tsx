@@ -1,3 +1,4 @@
+import { uniqueSources } from '../lib/api';
 import { ArrowUpRight, ScanLine, Zap, Search, Check, Circle } from 'lucide-react';
 import type { Signal, Evidence, Investigation, AgentId } from '../../shared/types';
 import { AGENTS } from '../../shared/types';
@@ -183,7 +184,8 @@ export function CausalMap({
     </div>
   );
 }
-export function EvidenceChart({ evidence }: { evidence: Evidence[] }) {
+export function EvidenceChart({ evidence: records }: { evidence: Evidence[] }) {
+  const evidence = uniqueSources(records);
   const groups = [
     {
       label: 'Official documents',

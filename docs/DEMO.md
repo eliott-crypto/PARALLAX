@@ -1,46 +1,41 @@
-# PARALLAX: three-minute demonstration
+# PARALLAX — three-minute demonstration
 
-Open the application before the demo. Keep the mode label visible. The included Browserbase investigation is a manually researched editorial sample with nine role-shaped perspectives; it is **not** a recorded Claude run. Its empty event history and zero usage are intentional. Source review took place on 15 October 2026; publication dates are shown separately and some source pages are undated. Confidence is qualitative, not a probability of investment success.
+Start with `npm install && npm run build && npm start`, then open http://127.0.0.1:3001. The completed real investigation is bundled in the repository and needs no API key to replay. An API key enables fresh research; it stays in the ignored local environment file.
 
-## 0:00–0:35 — Start with the signal
+## 0:00–0:30 — Start with a change
 
-“PARALLAX investigates what happens next. Stanford documented a historical decline in benchmark-equivalent inference prices. The first-order story is cheaper models. The second-order question is whether reliable execution becomes the scarce resource.”
+“Most investment tools start with a company you already know. PARALLAX starts with a change in the world and asks who might benefit.”
 
-Open the AI infrastructure signal. Follow the causal chain: the cost observation is verified; the arrows into workflow demand and browser infrastructure are explicitly hypotheses. Open the Stanford source to show the dated measurement and its scope.
+Show Signal Radar. The initial three cards are explicitly labelled curated samples, with real sources. Open the inference-cost signal and its labelled causal links. Explain that cheaper reasoning may increase demand for execution infrastructure; the downstream links are hypotheses.
 
-## 0:35–1:15 — Follow the mechanism to a company
+## 0:30–1:10 — Open the real investigation
 
-Open Browserbase. Show its actual product documentation and its public founder record. “We have a relevant candidate and a corroborated professional identity. We have not inferred revenue, retention or operating quality from a funding announcement.”
+Return to Overview and click **Replay completed investigation**. Its header says **Recorded investigation**, with the actual timestamps and sources. This is saved Claude execution, not simulated live activity.
 
-Show the company alternatives. Browserless and Steel are real offerings with linked first-party sources, including an open-source/self-hosting option. Their performance has not been benchmarked here.
+Select Founder Analyst and Company Hunter. Show public professional research, real competitors and citation drilldown. Then select Investment Committee to show the recorded Opus 5.5 model and actual provider usage.
 
-## 1:15–2:15 — Make the disagreement visible
+## 1:10–2:10 — The team corrects itself
 
-Open the Bull: an integrated developer experience and better workflow reliability might earn a premium. Open the Bear: alternative suppliers, retries and browser costs could destroy that premium.
+Show Bull and Bear. The original Bull argued for a developer-distribution moat; the Bear questioned whether distribution converts into durable paid demand.
 
-Then open the Verifier. “This is the pivotal change: the category thesis has support, but inevitable unique winner does not. The revision turns a persuasive narrative into a falsifiable research question.” Read the narrowed thesis and the request for matched workflow tests.
+The first Verifier found the official Stagehand FAQ: MIT-licensed, usable without a Browserbase account. The Bull revised its lock-in argument.
 
-In the curated sample these are editorial perspectives written to demonstrate the investigation structure. Only an investigation labelled live represents calls made by the running Claude backend.
+Click **Review corrections**. A second bounded source challenge found that Salesforce and Visa were named under competitor Sauce Labs in the cited Contrary article. The original customer claim is marked CONTRADICTED; the old record and actual correction event remain visible. It was fed into another real Bull revision.
 
-## 2:15–3:00 — End with a decision and a real next action
+“Traceable sources are necessary, but a citation can still be misread. PARALLAX makes the disagreement and correction inspectable.”
 
-Open the committee: **MONITOR**. Explain the upgrade conditions: controlled completion-cost benchmarks, retention and gross-margin diligence, and independent customer references. Save to the watchlist if available. Briefly show cybersecurity and energy to demonstrate that the same method works across sectors.
+## 2:10–2:50 — A decision with explicit unknowns
 
-If the Claude API is configured, start a fresh investigation and show actual agent progress, source output and recorded usage as the backend reports them. A live run may take longer than the demo; prepare a completed live result in advance only after actually running and verifying it. Never rename the curated sample as live or recorded.
+Open **Investment memo**. The final Opus 5.5 committee decision is **MONITOR**, with **LOW research confidence**. It removes unsupported numerical precision and states the missing data: SDK-to-paid conversion, realised margins, retention, present ARR and enterprise commitment terms.
 
-## Honest fallback
+Show the three concrete diligence questions, working sources and Export. Save the thesis to Watchtower. Rechecks run on demand; there is no claim of background scheduling.
 
-If credentials, quota or network access prevent live research, say: “This is the source-linked curated walkthrough. The live research service is unavailable in this environment.” Show the real error/configuration state. Do not animate fake agent execution or claim a successful provider call. Tokens, execution times, investments and performance comparisons must come from actual observations.
+## 2:50–3:00 — Close
 
-The sample is research triage, not an investment recommendation. It deliberately leaves commercial metrics unknown and separates first-party claims, public facts and causal hypotheses.
+“PARALLAX is a research organisation that can challenge and revise its own thesis. The result is a better next research decision, with an evidence trail.”
 
-## Reviewed primary sources
+## Live option and reliability
 
-- [Stanford HAI, AI Index 2025 charts, 7 April 2025](https://hai.stanford.edu/news/ai-index-2025-state-of-ai-in-10-charts): historical benchmark-normalized inference comparison, not end-to-end task economics.
-- [Browserbase introduction](https://docs.browserbase.com/welcome/introduction): current first-party product descriptions.
-- [Browserbase announcement, 18 June 2025](https://www.browserbase.com/blog/series-b-and-beyond): historical financing and product announcement.
-- [Paul Klein IV professional website](https://klein.dev/) and [Notable Capital, 17 June 2025](https://www.notablecap.com/blog/why-we-invested-in-browserbase): corroborated professional identity; investor source has an economic interest.
-- [Browserless](https://www.browserless.io/) and [Steel](https://steel.dev/): competing offerings, not independently tested performance.
-- [NIST SSDF v1.1, 3 February 2022](https://csrc.nist.gov/pubs/sp/800/218/final) and [Chainguard Containers](https://www.chainguard.dev/containers): foundational secure-development guidance and a relevant first-party product offering; no claim of a new legal mandate.
-- [LBNL data-center energy report, June 2026](https://www.energy.gov/documents/united-states-data-center-energy-usage-report-2025-update): estimates and modeled scenarios, despite “2025 Update” in its title.
-- [Fervo commercial-operation announcement, 1 October 2026](https://fervoenergy.com/fervo-energy-declares-commercial-operation-at-cape-station-ahead-of-schedule-leading-the-race-for-next-generation-geothermal-energy/): recent first-party operating claim; project economics not independently audited.
+Use New investigation for fresh execution, or Scan for signals for a bounded two-agent scout/discovery pass. These consume Anthropic credits and take several minutes. The recorded run keeps the presentation reliable.
+
+The saved trace includes a token-budget interruption and legitimate assessment recovery. It also identifies external source-quality review notes separately from Claude execution. Do not present it as a flawless first pass, an autonomous always-on monitor, audited financial due diligence, or a prediction of returns.

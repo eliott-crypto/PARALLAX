@@ -21,20 +21,32 @@ import {
   type AgentRun,
 } from '../../shared/types';
 import { AgentConstellation } from './Visuals';
-import { readable, dateLabel } from '../lib/api';
+import { readable, dateLabel, sourceCount, uniqueSources } from '../lib/api';
 
-function Findings({ run, onEvidence }: { run?: AgentRun; onEvidence: (ids?: string[]) => void }) {
+function Findings({
+  run,
+  evidence,
+  onEvidence,
+}: {
+  run?: AgentRun;
+  evidence: Evidence[];
+  onEvidence: (ids?: string[]) => void;
+}) {
   if (!run) return null;
   return (
     <div className="findings">
       {run.output?.findings.map((finding, i) => (
         <div key={i} className="finding">
           <span className={`finding-kind ${finding.kind.toLowerCase()}`}>{finding.kind}</span>
+          {finding.evidenceIds.some(
+            (id) => evidence.find((source) => source.id === id)?.correction,
+          ) && <span className="badge rose">Cited evidence revised</span>}
           <h4>{finding.title}</h4>
           <p>{finding.detail}</p>
           {finding.evidenceIds.length > 0 && (
             <button className="citation-button" onClick={() => onEvidence(finding.evidenceIds)}>
-              ↗ {finding.evidenceIds.length} source{finding.evidenceIds.length === 1 ? '' : 's'}
+              ↗ Sources (
+              {sourceCount(evidence.filter((entry) => finding.evidenceIds.includes(entry.id)))})
             </button>
           )}
         </div>
@@ -49,6 +61,8 @@ export default function InvestigationRoom({
   onWatch,
   onRecheck,
   onCancel,
+  onComplete,
+  onChallenge,
 }: {
   investigation: Investigation;
   onBack: () => void;
@@ -56,6 +70,8 @@ export default function InvestigationRoom({
   onWatch: () => void;
   onRecheck: () => void;
   onCancel: () => void;
+  onComplete: () => void;
+  onChallenge: () => void;
 }) {
   const [selected, setSelected] = useState<AgentId>('scout');
   const [tab, setTab] = useState<'workspace' | 'report'>('workspace');
@@ -67,6 +83,26 @@ export default function InvestigationRoom({
   const bull = investigation.agents.find((a) => a.id === 'bull');
   const bear = investigation.agents.find((a) => a.id === 'bear');
   const sample = investigation.mode === 'sample';
+  const verificationRounds = investigation.events.filter(
+    (event) => event.type === 'agent_started' && event.agentId === 'verifier',
+  ).length;
+  const canChallenge =
+    investigation.mode === 'live' &&
+    ['completed', 'partial'].includes(investigation.status) &&
+    verificationRounds < 2 &&
+    AGENTS.filter((agent) => agent.id !== 'committee').every((agent) => {
+      const stage = investigation.agents.find((run) => run.id === agent.id);
+      return stage?.status === 'completed' && !!stage.output;
+    });
+  const correctedEvidence = investigation.evidence.filter((evidence) => evidence.correction);
+  const canFinish =
+    investigation.mode === 'live' &&
+    investigation.status === 'partial' &&
+    committee?.status === 'failed' &&
+    AGENTS.filter((agent) => agent.id !== 'committee').every((agent) => {
+      const stage = investigation.agents.find((run) => run.id === agent.id);
+      return stage?.status === 'completed' && !!stage.output;
+    });
 
   return (
     <>
@@ -93,6 +129,18 @@ export default function InvestigationRoom({
           <p>{investigation.query}</p>
         </div>
         <div className="room-actions">
+          {canChallenge && (
+            <button className="button ghost" onClick={onChallenge}>
+              <Scale size={15} />
+              Challenge thesis
+            </button>
+          )}
+          {canFinish && (
+            <button className="button primary" onClick={onComplete}>
+              <RotateCw size={15} />
+              Finish assessment
+            </button>
+          )}
           <button
             className={`button ghost ${investigation.watched ? 'is-watched' : ''}`}
             onClick={onWatch}
@@ -127,6 +175,21 @@ export default function InvestigationRoom({
           {investigation.error}
         </div>
       )}
+      {correctedEvidence.length > 0 && (
+        <div className="sample-banner correction-banner">
+          <ShieldCheck size={18} />
+          <span>
+            <b>{correctedEvidence.length} earlier evidence claims revised after verification.</b>{' '}
+            Original findings are preserved; the assessment uses the corrections.
+          </span>
+          <button
+            className="text-button"
+            onClick={() => onEvidence(correctedEvidence.map((evidence) => evidence.id))}
+          >
+            Review corrections <ArrowUpRight size={14} />
+          </button>
+        </div>
+      )}
       <div className="room-summary">
         <div>
           <span className={`status-dot ${investigation.status === 'running' ? 'active' : ''}`} />
@@ -136,7 +199,8 @@ export default function InvestigationRoom({
           <span>{completed}/9</span> agents {sample ? 'illustrated' : 'completed'}
         </div>
         <button onClick={() => onEvidence()}>
-          <span>{investigation.evidence.length}</span> cited sources <ArrowUpRight size={13} />
+          <span>{sourceCount(investigation.evidence)}</span> cited sources{' '}
+          <ArrowUpRight size={13} />
         </button>
         <div>
           <span>{sample ? 'Qualitative' : readable(investigation.confidence)}</span> confidence
@@ -202,10 +266,47 @@ export default function InvestigationRoom({
                   {sample ? 'sample' : (run?.status ?? 'queued')}
                 </span>
               </div>
+              {!sample &&
+                run &&
+                (run.inputTokens !== undefined ||
+                  run.outputTokens !== undefined ||
+                  run.searches !== undefined) && (
+                  <div
+                    className="execution-audit"
+                    title="Actual usage recorded from the research provider"
+                  >
+                    <span>CLAUDE EXECUTION AUDIT</span>
+                    <span>{run.model ?? investigation.model}</span>
+                    <div>
+                      {run.inputTokens !== undefined && (
+                        <span>
+                          <b>{run.inputTokens.toLocaleString()}</b> input tokens
+                        </span>
+                      )}
+                      {run.outputTokens !== undefined && (
+                        <span>
+                          <b>{run.outputTokens.toLocaleString()}</b> output tokens
+                        </span>
+                      )}
+                      {run.searches !== undefined && (
+                        <span>
+                          <b>{run.searches.toLocaleString()}</b> web searches
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
               {run?.output ? (
                 <>
+                  {(correctedEvidence.length > 0 || !!investigation.reviewNotes?.length) &&
+                    selected !== 'committee' && (
+                      <p className="historical-note">
+                        Earlier research output. Source corrections and the final committee memo
+                        take precedence.
+                      </p>
+                    )}
                   <p className="agent-summary">{run.output.summary}</p>
-                  <Findings run={run} onEvidence={onEvidence} />
+                  <Findings run={run} evidence={investigation.evidence} onEvidence={onEvidence} />
                   {run.output.companies?.length ? (
                     <div className="agent-companies">
                       <h4>Companies discovered</h4>
@@ -229,7 +330,13 @@ export default function InvestigationRoom({
                               className="citation-button"
                               onClick={() => onEvidence(c.evidenceIds)}
                             >
-                              ↗ {c.evidenceIds.length} sources
+                              ↗{' '}
+                              {sourceCount(
+                                investigation.evidence.filter((entry) =>
+                                  c.evidenceIds.includes(entry.id),
+                                ),
+                              )}{' '}
+                              sources
                             </button>
                           )}
                         </div>
@@ -299,7 +406,7 @@ export default function InvestigationRoom({
                 {bull?.output?.summary ??
                   'The investment case will be constructed from the research evidence.'}
               </p>
-              <Findings run={bull} onEvidence={onEvidence} />
+              <Findings run={bull} evidence={investigation.evidence} onEvidence={onEvidence} />
             </section>
             <section className="panel argument bear">
               <div className="panel-heading">
@@ -312,7 +419,7 @@ export default function InvestigationRoom({
                 {bear?.output?.summary ??
                   'An independent agent will challenge the thesis and its assumptions.'}
               </p>
-              <Findings run={bear} onEvidence={onEvidence} />
+              <Findings run={bear} evidence={investigation.evidence} onEvidence={onEvidence} />
             </section>
           </div>
           <section className="panel verification-panel">
@@ -398,6 +505,14 @@ export default function InvestigationRoom({
             </div>
             <BrandMark />
           </div>
+          {investigation.reviewNotes?.length ? (
+            <details className="memo-review">
+              <summary>Source-quality review incorporated</summary>
+              {investigation.reviewNotes.map((note, index) => (
+                <p key={index}>{note}</p>
+              ))}
+            </details>
+          ) : null}
           <div className="decision-box">
             <span>COMMITTEE ASSESSMENT</span>
             <h3>{investigation.decision ?? committee?.output?.decision ?? 'Assessment pending'}</h3>
@@ -406,7 +521,7 @@ export default function InvestigationRoom({
                 'The committee will synthesize the evidence, the Bull and Bear cases, and the Verifier’s findings.'}
             </p>
           </div>
-          <Findings run={committee} onEvidence={onEvidence} />
+          <Findings run={committee} evidence={investigation.evidence} onEvidence={onEvidence} />
           {committee?.output?.questions?.length ? (
             <div className="memo-actions">
               <h3>Next diligence actions</h3>
@@ -420,7 +535,7 @@ export default function InvestigationRoom({
           ) : null}
           <div className="memo-sources">
             <h3>Evidence & sources</h3>
-            {investigation.evidence.map((e, i) => (
+            {uniqueSources(investigation.evidence).map((e, i) => (
               <a href={e.url} key={e.id} target="_blank" rel="noopener noreferrer">
                 <span>{String(i + 1).padStart(2, '0')}</span>
                 <div>

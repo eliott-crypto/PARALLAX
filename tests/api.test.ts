@@ -13,6 +13,7 @@ async function fixture(configured = false) {
   const directory = mkdtempSync(join(tmpdir(), 'parallax-api-'));
   const instance = createApp({
     store: new ResearchStore(directory),
+    recordings: [],
     configured: () => configured,
     runner: async (run, onUpdate) => {
       run.status = 'completed';
@@ -118,6 +119,7 @@ test('SSE exposes initial state and cancellation preserves a completed stage', a
   const directory = mkdtempSync(join(tmpdir(), 'parallax-stream-'));
   const instance = createApp({
     store: new ResearchStore(directory),
+    recordings: [],
     configured: () => true,
     runner: async (run, onUpdate, signal) => {
       run.agents[0].status = 'completed';
@@ -192,4 +194,101 @@ test('sample watch state survives reload and different localhost origins are rej
   } finally {
     await f.close();
   }
+});
+
+test('assessment recovery only runs the remaining committee step and rejects missing research', async () => {
+  const directory = mkdtempSync(join(tmpdir(), 'parallax-finish-'));
+  let calls = 0;
+  const instance = createApp({
+    store: new ResearchStore(directory),
+    recordings: [],
+    configured: () => true,
+    finisher: async (run, onUpdate) => {
+      calls++;
+      run.status = 'completed';
+      run.decision = 'MONITOR';
+      run.agents.find((agent) => agent.id === 'committee')!.status = 'completed';
+      const event = {
+        id: 'finish',
+        investigationId: run.id,
+        timestamp: new Date().toISOString(),
+        type: 'investigation_completed',
+        message: 'Controlled committee recovery',
+      };
+      run.events.push(event);
+      onUpdate(event);
+    },
+  });
+  const run = structuredClone(sampleInvestigation);
+  run.id = 'finishable';
+  run.mode = 'live';
+  run.status = 'partial';
+  run.agents.find((agent) => agent.id === 'committee')!.status = 'failed';
+  instance.store.save(run);
+  const broken = structuredClone(run);
+  broken.id = 'missing-research';
+  broken.agents.find((agent) => agent.id === 'founder')!.status = 'failed';
+  instance.store.save(broken);
+  const server = instance.app.listen(0, '127.0.0.1');
+  await new Promise<void>((resolve) => server.once('listening', resolve));
+  const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+  try {
+    const denied = await fetch(`${base}/api/investigations/missing-research/complete`, {
+      method: 'POST',
+    });
+    assert.equal(denied.status, 409);
+    assert.equal(calls, 0);
+    const before = JSON.stringify(run.agents.find((agent) => agent.id === 'founder')!.output);
+    const response = await fetch(`${base}/api/investigations/finishable/complete`, {
+      method: 'POST',
+    });
+    assert.equal(response.status, 202);
+    assert.equal((await response.json()).status, 'completed');
+    assert.equal(calls, 1);
+    assert.equal(
+      JSON.stringify(run.agents.find((agent) => agent.id === 'founder')!.output),
+      before,
+    );
+    const review = await fetch(`${base}/api/investigations/finishable/complete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reviewNotes: 'Historical estimates do not establish current ARR.' }),
+    });
+    assert.equal(review.status, 202);
+    assert.equal(calls, 2);
+    assert.equal(run.reviewNotes?.length, 1);
+    assert.ok(run.events.some((event) => event.type === 'assessment_invalidated'));
+    const repeated = await fetch(`${base}/api/investigations/finishable/complete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reviewNotes: 'Try another unbounded review.' }),
+    });
+    assert.equal(repeated.status, 202);
+    assert.equal(calls, 3);
+    assert.equal(run.reviewNotes?.length, 2);
+    const capped = await fetch(`${base}/api/investigations/finishable/complete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reviewNotes: 'A third review must be rejected.' }),
+    });
+    assert.equal(capped.status, 409);
+    assert.equal(calls, 3);
+    assert.equal(run.reviewNotes?.length, 2);
+  } finally {
+    instance.shutdown();
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test('report exports corrections and source-quality caveats beside historical findings', () => {
+  const run = structuredClone(sampleInvestigation);
+  run.reviewNotes = ['A weekly count does not establish a historical monthly denominator.'];
+  run.evidence[0].correction = 'The source does not support the original customer attribution.';
+  run.evidence[0].status = 'CONTRADICTED';
+  const report = renderReport(run);
+  assert.match(report, /Source-quality review/);
+  assert.match(report, /historical monthly denominator/);
+  assert.match(report, /Verification correction:/);
+  assert.match(report, /Cited evidence revised/);
 });

@@ -12,7 +12,12 @@ import {
   TokenBudget,
   type ClaudeResponse,
 } from '../server/claude.js';
-import { runInvestigation, scanSignals } from '../server/orchestrator.js';
+import {
+  completeAssessment,
+  challengeAssessment,
+  runInvestigation,
+  scanSignals,
+} from '../server/orchestrator.js';
 
 const source = { url: 'https://example.org/research', title: 'Retrieved primary document' };
 const fixture = (): AgentOutput => ({
@@ -96,6 +101,75 @@ const fakeKey = () => {
   };
 };
 
+const recoverableAssessment = (): Investigation => {
+  const output = fixture();
+  const stamp = new Date().toISOString();
+  return {
+    id: 'recover-assessment',
+    title: 'A completed research graph',
+    query: 'Research a documented change',
+    company: output.companies![0],
+    mode: 'live',
+    status: 'partial',
+    createdAt: stamp,
+    completedAt: stamp,
+    agents: AGENTS.map(({ id }) =>
+      id === 'committee'
+        ? { id, status: 'failed', error: 'Investigation token budget reached.' }
+        : {
+            id,
+            status: 'completed',
+            output: structuredClone(output),
+            searches: id === 'verifier' ? 1 : 0,
+          },
+    ),
+    events: [
+      {
+        id: 'original-bull',
+        investigationId: 'recover-assessment',
+        timestamp: stamp,
+        agentId: 'bull',
+        type: 'agent_completed',
+        message: 'Original Bull position',
+        payload: { output: structuredClone(output) },
+      },
+      {
+        id: 'revision-bull',
+        investigationId: 'recover-assessment',
+        timestamp: stamp,
+        agentId: 'bull',
+        type: 'thesis_revised',
+        message: 'Bull feedback revision',
+        payload: { output: structuredClone(output), original: structuredClone(output) },
+      },
+      {
+        id: 'fresh-verification',
+        investigationId: 'recover-assessment',
+        timestamp: stamp,
+        agentId: 'verifier',
+        type: 'search_completed',
+        message: 'Actual verifier search',
+        payload: { sources: [source] },
+      },
+      {
+        id: 'failed-committee',
+        investigationId: 'recover-assessment',
+        timestamp: stamp,
+        agentId: 'committee',
+        type: 'agent_failed',
+        message: 'Investigation token budget reached.',
+        payload: { code: 'TOKEN_BUDGET' },
+      },
+    ],
+    evidence: structuredClone(output.evidence),
+    confidence: 'LOW',
+    error: 'Investigation token budget reached.',
+    watched: false,
+    totalInputTokens: 200000,
+    totalOutputTokens: 14203,
+  };
+};
+
 test('JSON extraction recovers fences and enclosing text but rejects invalid schema', () => {
   assert.equal(
     parseAgentOutput(`\`\`\`json\n${JSON.stringify(fixture())}\n\`\`\``).summary,
@@ -106,6 +180,120 @@ test('JSON extraction recovers fences and enclosing text but rejects invalid sch
     1,
   );
   assert.throws(() => parseAgentOutput('{"summary":"Incomplete"}'), /invalid research structure/);
+});
+
+test('enum presentation normalization preserves evidence URLs, claims, and IDs exactly', () => {
+  const raw = JSON.parse(JSON.stringify(fixture()));
+  raw.confidence = ' medium ';
+  raw.findings[0].kind = ' company_claim ';
+  raw.evidence[0].type = ' official document ';
+  raw.evidence[0].status = ' unverified ';
+  raw.companies[0].confidence = ' low ';
+  raw.causalChain[0].status = ' reasoned_hypothesis ';
+  raw.verification = ' partially_supported ';
+  raw.decision = ' prioritise_research ';
+  const parsed = parseAgentOutput(JSON.stringify(raw));
+  assert.equal(parsed.confidence, 'MEDIUM');
+  assert.equal(parsed.findings[0].kind, 'COMPANY CLAIM');
+  assert.equal(parsed.evidence[0].type, 'OFFICIAL_DOCUMENT');
+  assert.equal(parsed.evidence[0].status, 'UNVERIFIED');
+  assert.equal(parsed.causalChain?.[0].status, 'REASONED HYPOTHESIS');
+  assert.equal(parsed.verification, 'PARTIALLY SUPPORTED');
+  assert.equal(parsed.decision, 'PRIORITISE RESEARCH');
+  assert.equal(parsed.evidence[0].url, raw.evidence[0].url);
+  assert.equal(parsed.evidence[0].claim, raw.evidence[0].claim);
+  assert.equal(parsed.evidence[0].id, raw.evidence[0].id);
+  assert.deepEqual(parsed.findings[0].evidenceIds, raw.findings[0].evidenceIds);
+});
+
+test('unknown categorical labels conservatively lose certainty instead of fabricating facts', () => {
+  const raw = JSON.parse(JSON.stringify(fixture()));
+  raw.findings = ['PROVEN FACT', 'INFERENCE', 'ANALYST_INFERENCE', 'REASONED_HYPOTHESIS'].map(
+    (kind) => ({ ...raw.findings[0], kind }),
+  );
+  raw.confidence = 'ABSOLUTELY CERTAIN';
+  raw.evidence[0].status = 'CONFIRMED';
+  raw.causalChain[0].status = 'CAUSALLY PROVEN';
+  raw.verification = 'TRUE';
+  raw.decision = 'BUY NOW';
+  raw.companies[0].confidence = 'GUARANTEED';
+  const parsed = parseAgentOutput(JSON.stringify(raw));
+  assert.deepEqual(
+    parsed.findings.map((finding) => finding.kind),
+    ['UNKNOWN', 'HYPOTHESIS', 'HYPOTHESIS', 'HYPOTHESIS'],
+  );
+  assert.equal(parsed.confidence, 'INSUFFICIENT');
+  assert.equal(parsed.evidence[0].status, 'UNVERIFIED');
+  assert.equal(parsed.causalChain?.[0].status, 'SPECULATIVE');
+  assert.equal(parsed.verification, 'UNRESOLVED');
+  assert.equal(parsed.decision, 'INSUFFICIENT EVIDENCE');
+  assert.equal(parsed.companies?.[0].confidence, 'INSUFFICIENT');
+});
+
+test('missing or non-string categorical fields remain structural errors and unknown source types are rejected', () => {
+  const mutations = [
+    (raw: any) => {
+      delete raw.confidence;
+    },
+    (raw: any) => {
+      delete raw.findings[0].kind;
+    },
+    (raw: any) => {
+      raw.findings[0].kind = 42;
+    },
+    (raw: any) => {
+      raw.evidence[0].status = null;
+    },
+    (raw: any) => {
+      raw.verification = false;
+    },
+    (raw: any) => {
+      raw.evidence[0].type = 'UNSPECIFIED WEBSITE';
+    },
+  ];
+  for (const mutate of mutations) {
+    const raw = JSON.parse(JSON.stringify(fixture()));
+    mutate(raw);
+    assert.throws(
+      () => parseAgentOutput(JSON.stringify(raw)),
+      (error) => error instanceof ResearchError && error.diagnostic?.kind === 'INVALID_SCHEMA',
+    );
+  }
+  const optional = fixture();
+  delete optional.verification;
+  delete optional.decision;
+  assert.equal(parseAgentOutput(JSON.stringify(optional)).verification, undefined);
+});
+
+test('a harmless inference label is normalized without another paid model request', async () => {
+  const restore = fakeKey();
+  let calls = 0;
+  let recoveries = 0;
+  try {
+    const value = response();
+    const raw = JSON.parse(String(value.content.at(-1)?.text));
+    raw.findings[0].kind = 'ANALYST_INFERENCE';
+    value.content.at(-1)!.text = JSON.stringify(raw);
+    const result = await runClaudeAgent({
+      namespace: 'enum',
+      role: 'Scout',
+      task: 'Research',
+      context: {},
+      previousEvidence: [],
+      budget: new TokenBudget(),
+      onDiagnostic: () => recoveries++,
+      fetcher: (async () => {
+        calls++;
+        return json(value);
+      }) as typeof fetch,
+    });
+    assert.equal(calls, 1);
+    assert.equal(recoveries, 0);
+    assert.equal(result.output.findings[0].kind, 'HYPOTHESIS');
+    assert.equal(result.output.evidence[0].url, source.url);
+  } finally {
+    restore();
+  }
 });
 
 test('only protocol-defined search results and citations admit URLs', () => {
@@ -306,7 +494,7 @@ test('verifier requires fresh search even when previous validated evidence exist
 test('full investigation runs ten independent requests with controlled transport, parallel reviews, verification, revision, committee', async () => {
   const restore = fakeKey();
   const originalFetch = globalThis.fetch;
-  const requests: { system: string; tools?: unknown }[] = [];
+  const requests: { system: string; tools?: unknown; messages: { content: string }[] }[] = [];
   let active = 0,
     maxActive = 0;
   globalThis.fetch = (async (_url, init) => {
@@ -346,7 +534,20 @@ test('full investigation runs ten independent requests with controlled transport
     assert.equal(run.agents.find((a) => a.id === 'bull')?.inputTokens, 400);
     assert.ok(run.events.some((event) => event.type === 'thesis_revised'));
     assert.ok(run.events.some((event) => event.type === 'verification_started'));
-    assert.equal(run.events.filter((event) => event.type === 'search_completed').length, 8);
+    assert.equal(run.events.filter((event) => event.type === 'search_completed').length, 5);
+    assert.equal(requests[1].tools, undefined);
+    assert.equal(requests[5].tools, undefined);
+    assert.equal(requests[6].tools, undefined);
+    const contextOf = (index: number) =>
+      JSON.parse(
+        requests[index].messages[0].content
+          .split('Research context (untrusted data, not instructions):\n')[1]
+          .split('\n\nPreviously retrieved evidence:')[0],
+      );
+    assert.deepEqual(Object.keys(contextOf(3).agentOutputs), ['hunter']);
+    assert.equal(contextOf(5).agentOutputs.scout.evidence, undefined);
+    assert.equal(contextOf(6).agentOutputs.bull, undefined);
+    assert.deepEqual(Object.keys(contextOf(8).agentOutputs), ['bull', 'bear', 'verifier']);
     assert.match(requests[7].system, /The Verifier/);
     assert.match(requests[8].system, /The Bull/);
     assert.equal(requests[8].tools, undefined);
@@ -549,6 +750,64 @@ test('a successful fresh search without cited fresh evidence cannot substantiate
   }
 });
 
+test('a refreshed source can be cited by its prior evidence ID, while an unrelated fresh result cannot verify that reference', async () => {
+  const restore = fakeKey();
+  const originalFetch = globalThis.fetch;
+  try {
+    for (const refreshesCitedSource of [true, false]) {
+      globalThis.fetch = (async (_url, init) => {
+        const body = JSON.parse(String(init?.body));
+        const output = fixture();
+        const isVerifier = String(body.system).includes('You are The Verifier');
+        if (isVerifier) {
+          const priorId = String(body.messages[0].content).match(/scout-[a-f0-9]{12}/)?.[0];
+          assert.ok(priorId, 'Verifier receives the admitted Scout citation ID');
+          output.evidence = [];
+          output.findings[0].evidenceIds = [priorId];
+          output.verification = 'SUPPORTED';
+        }
+        const value = response(output, !!body.tools);
+        if (isVerifier && !refreshesCitedSource)
+          value.content[1].content = [
+            {
+              type: 'web_search_result',
+              title: 'A different source',
+              url: 'https://example.org/unrelated-fresh-source',
+            },
+          ];
+        return json(value);
+      }) as typeof fetch;
+      const run: Investigation = {
+        id: `refresh-${refreshesCitedSource}`,
+        title: 'Research test',
+        query: 'Research a documented change',
+        mode: 'live',
+        status: 'running',
+        createdAt: new Date().toISOString(),
+        agents: AGENTS.map(({ id }) => ({ id, status: 'queued' })),
+        events: [],
+        evidence: [],
+        confidence: 'LOW',
+        watched: false,
+        totalInputTokens: 0,
+        totalOutputTokens: 0,
+      };
+      await runInvestigation(run, () => {}, new AbortController().signal);
+      const verifier = run.agents.find((agent) => agent.id === 'verifier')!;
+      assert.equal(verifier.output?.evidence.length, 0);
+      assert.match(verifier.output?.findings[0].evidenceIds[0] || '', /^scout-/);
+      assert.equal(
+        verifier.output?.verification,
+        refreshesCitedSource ? 'SUPPORTED' : 'UNRESOLVED',
+      );
+      assert.equal(run.status, refreshesCitedSource ? 'completed' : 'partial');
+    }
+  } finally {
+    globalThis.fetch = originalFetch;
+    restore();
+  }
+});
+
 test('cancellation preserves a clear terminal state and does not issue queued stage requests', async () => {
   const controller = new AbortController();
   controller.abort();
@@ -621,9 +880,10 @@ test('an uncorroborated supplied company domain cannot become a completed compan
 test('a successful Bull revision cannot erase the initial Bull stage failure', async () => {
   const restore = fakeKey();
   const originalFetch = globalThis.fetch;
+  let bullCalls = 0;
   globalThis.fetch = (async (_url, init) => {
     const body = JSON.parse(String(init?.body));
-    if (String(body.system).includes('You are The Bull') && body.tools)
+    if (String(body.system).includes('You are The Bull') && ++bullCalls === 1)
       return json({ error: 'Controlled initial Bull failure' }, 400);
     return json(response(fixture(), !!body.tools));
   }) as typeof fetch;
@@ -656,6 +916,71 @@ test('a successful Bull revision cannot erase the initial Bull stage failure', a
   }
 });
 
+test('citation boundaries preserve JSON string contents when text blocks are concatenated', async () => {
+  const restore = fakeKey();
+  try {
+    const value = response();
+    const text = JSON.stringify(fixture());
+    const boundary = text.indexOf('documented') + 5;
+    value.content = [
+      ...value.content.slice(0, 2),
+      {
+        type: 'text',
+        text: text.slice(0, boundary),
+        citations: [{ type: 'web_search_result_location', ...source }],
+      },
+      { type: 'text', text: text.slice(boundary) },
+    ];
+    const result = await runClaudeAgent({
+      namespace: 'split',
+      role: 'Scout',
+      task: 'Research',
+      context: {},
+      previousEvidence: [],
+      budget: new TokenBudget(),
+      fetcher: (async () => json(value)) as typeof fetch,
+    });
+    assert.equal(result.output.summary, fixture().summary);
+  } finally {
+    restore();
+  }
+});
+
+test('output truncation recovers once without resending encrypted search documents', async () => {
+  const restore = fakeKey();
+  const bodies: Record<string, unknown>[] = [];
+  const diagnostics: unknown[] = [];
+  let calls = 0;
+  try {
+    const result = await runClaudeAgent({
+      namespace: 'truncated',
+      role: 'Scout',
+      task: 'Research',
+      context: {},
+      previousEvidence: [],
+      budget: new TokenBudget(),
+      onDiagnostic: (diagnostic) => diagnostics.push(diagnostic),
+      fetcher: (async (_url, init) => {
+        bodies.push(JSON.parse(String(init?.body)));
+        const value = response(fixture(), calls === 0);
+        if (++calls === 1) {
+          value.stop_reason = 'max_tokens';
+          (value.content[1].content as Record<string, unknown>[])[0].encrypted_content =
+            'ENCRYPTED_DOCUMENT_DATA_NOT_NEEDED';
+        }
+        return json(value);
+      }) as typeof fetch,
+    });
+    assert.equal(calls, 2);
+    assert.equal(result.searches, 1);
+    assert.deepEqual(diagnostics, [{ kind: 'OUTPUT_TRUNCATED', stopReason: 'max_tokens' }]);
+    assert.equal(bodies[0].max_tokens, 5000);
+    assert.equal(JSON.stringify(bodies[1]).includes('ENCRYPTED_DOCUMENT_DATA_NOT_NEEDED'), false);
+  } finally {
+    restore();
+  }
+});
+
 test('radar companies map by their exact signal title rather than shared source IDs', async () => {
   const restore = fakeKey();
   const originalFetch = globalThis.fetch;
@@ -681,6 +1006,260 @@ test('radar companies map by their exact signal title rather than shared source 
     assert.equal(radar.signals[1].companies.length, 0);
   } finally {
     globalThis.fetch = originalFetch;
+    restore();
+  }
+});
+
+test('assessment recovery calls only the committee, preserves prior failures, and accounts all earlier usage', async () => {
+  const restore = fakeKey();
+  const originalFetch = globalThis.fetch;
+  const previousLimit = process.env.MAX_INVESTIGATION_TOKENS;
+  process.env.MAX_INVESTIGATION_TOKENS = '300000';
+  let calls = 0;
+  const run = recoverableAssessment();
+  globalThis.fetch = (async (_url, init) => {
+    calls++;
+    const body = JSON.parse(String(init?.body));
+    assert.match(body.system, /Investment Committee/);
+    assert.equal(body.tools, undefined);
+    assert.match(body.messages[0].content, /originalBull/);
+    assert.match(body.messages[0].content, /bullRevision/);
+    return json(response(fixture(), false));
+  }) as typeof fetch;
+  try {
+    const promise = completeAssessment(run, () => {}, new AbortController().signal);
+    assert.equal(run.status, 'running');
+    await promise;
+    assert.equal(calls, 1);
+    assert.equal(run.status, 'completed');
+    assert.equal(run.decision, 'MONITOR');
+    assert.equal(run.totalInputTokens, 200200);
+    assert.equal(run.totalOutputTokens, 14303);
+    assert.equal(run.events.filter((event) => event.type === 'assessment_resumed').length, 1);
+    assert.equal(run.events.filter((event) => event.type === 'agent_started').length, 1);
+    assert.ok(
+      run.events.some((event) => event.id === 'failed-committee' && event.type === 'agent_failed'),
+    );
+    assert.equal(run.error, undefined);
+  } finally {
+    globalThis.fetch = originalFetch;
+    restore();
+    if (previousLimit === undefined) delete process.env.MAX_INVESTIGATION_TOKENS;
+    else process.env.MAX_INVESTIGATION_TOKENS = previousLimit;
+  }
+});
+
+test('assessment recovery respects total run usage before issuing another paid request', async () => {
+  const restore = fakeKey();
+  const originalFetch = globalThis.fetch;
+  const previousLimit = process.env.MAX_INVESTIGATION_TOKENS;
+  process.env.MAX_INVESTIGATION_TOKENS = '214203';
+  let calls = 0;
+  const run = recoverableAssessment();
+  globalThis.fetch = (async () => {
+    calls++;
+    return json(response());
+  }) as typeof fetch;
+  try {
+    await completeAssessment(run, () => {}, new AbortController().signal);
+    assert.equal(calls, 0);
+    assert.equal(run.status, 'partial');
+    assert.equal(run.totalInputTokens + run.totalOutputTokens, 214203);
+    assert.match(run.error || '', /token budget reached/);
+  } finally {
+    globalThis.fetch = originalFetch;
+    restore();
+    if (previousLimit === undefined) delete process.env.MAX_INVESTIGATION_TOKENS;
+    else process.env.MAX_INVESTIGATION_TOKENS = previousLimit;
+  }
+});
+
+test('assessment recovery rejects incomplete research, unknown company identity, or missing fresh verifier provenance', async () => {
+  const invalidRuns = [
+    recoverableAssessment(),
+    recoverableAssessment(),
+    recoverableAssessment(),
+    recoverableAssessment(),
+  ];
+  invalidRuns[0].agents.find((agent) => agent.id === 'bear')!.status = 'failed';
+  invalidRuns[1].company = { ...invalidRuns[1].company!, website: 'https://unretrieved.invalid' };
+  invalidRuns[2].events.find((event) => event.agentId === 'verifier')!.payload = { sources: [] };
+  invalidRuns[3].events = invalidRuns[3].events.filter((event) => event.type !== 'thesis_revised');
+  for (const run of invalidRuns) {
+    await assert.rejects(
+      completeAssessment(run, () => {}, new AbortController().signal),
+      (error) => error instanceof ResearchError && error.code === 'ASSESSMENT_NOT_RECOVERABLE',
+    );
+    assert.equal(run.status, 'partial');
+    assert.equal(run.totalInputTokens + run.totalOutputTokens, 214203);
+  }
+});
+
+test('bounded claim challenge corrects evidence atomically and makes only verifier, Bull, committee requests', async () => {
+  const restore = fakeKey();
+  const originalFetch = globalThis.fetch;
+  const previousLimit = process.env.MAX_INVESTIGATION_TOKENS;
+  process.env.MAX_INVESTIGATION_TOKENS = '400000';
+  const run = recoverableAssessment();
+  const originalClaim = run.evidence[0].claim;
+  const roles: string[] = [];
+  globalThis.fetch = (async (_url, init) => {
+    const body = JSON.parse(String(init?.body));
+    const output = fixture();
+    const verifier = String(body.system).includes('You are The Verifier');
+    roles.push(
+      verifier
+        ? 'verifier'
+        : String(body.system).includes('You are The Bull')
+          ? 'bull'
+          : 'committee',
+    );
+    if (verifier) {
+      output.corrections = [
+        {
+          evidenceId: 'source-1',
+          status: 'CONTRADICTED',
+          reason: 'The source attributes the customer to a competing company.',
+        },
+      ];
+      output.verification = 'CONTRADICTED';
+    } else {
+      assert.equal(body.tools, undefined);
+      assert.match(body.messages[0].content, /CONTRADICTED/);
+    }
+    return json(response(output, verifier));
+  }) as typeof fetch;
+  try {
+    await challengeAssessment(
+      run,
+      () => {},
+      new AbortController().signal,
+      'The customer belongs to a competitor, not the subject company.',
+    );
+    assert.deepEqual(roles, ['verifier', 'bull', 'committee']);
+    assert.equal(run.status, 'completed');
+    assert.equal(run.totalInputTokens + run.totalOutputTokens, 215103);
+    assert.equal(run.evidence[0].claim, originalClaim);
+    assert.equal(run.evidence[0].status, 'CONTRADICTED');
+    assert.match(run.evidence[0].correction!, /competing company/);
+    assert.ok(
+      run.events.some(
+        (e) =>
+          e.type === 'evidence_corrected' &&
+          (e.payload as { previous: { status: string } }).previous.status === 'SUPPORTED',
+      ),
+    );
+    assert.equal(run.events.filter((e) => e.type === 'thesis_revised').length, 2);
+    assert.ok(run.events.some((e) => e.id === 'failed-committee'));
+  } finally {
+    globalThis.fetch = originalFetch;
+    restore();
+    if (previousLimit === undefined) delete process.env.MAX_INVESTIGATION_TOKENS;
+    else process.env.MAX_INVESTIGATION_TOKENS = previousLimit;
+  }
+});
+
+test('failed fresh challenge search never rewrites prior evidence', async () => {
+  const restore = fakeKey();
+  const originalFetch = globalThis.fetch;
+  const run = recoverableAssessment();
+  const before = JSON.stringify(run.evidence);
+  globalThis.fetch = (async () => {
+    const value = response();
+    value.content[1].content = { type: 'web_search_tool_result_error', error_code: 'unavailable' };
+    const output = fixture();
+    output.corrections = [
+      { evidenceId: 'source-1', status: 'CONTRADICTED', reason: 'Not a verified correction.' },
+    ];
+    value.content[2].text = JSON.stringify(output);
+    return json(value);
+  }) as typeof fetch;
+  try {
+    await challengeAssessment(
+      run,
+      () => {},
+      new AbortController().signal,
+      'Test the source attribution again.',
+    );
+    assert.equal(run.status, 'partial');
+    assert.equal(JSON.stringify(run.evidence), before);
+    assert.ok(!run.events.some((e) => e.type === 'evidence_corrected'));
+  } finally {
+    globalThis.fetch = originalFetch;
+    restore();
+  }
+});
+
+test('unknown correction targets cannot modify evidence and the two-round cap prevents further calls', async () => {
+  const restore = fakeKey();
+  const originalFetch = globalThis.fetch;
+  const run = recoverableAssessment();
+  const before = JSON.stringify(run.evidence);
+  let calls = 0;
+  globalThis.fetch = (async () => {
+    calls++;
+    const output = fixture();
+    output.corrections = [
+      { evidenceId: 'unretrieved-id', status: 'CONTRADICTED', reason: 'Unknown target.' },
+    ];
+    return json(response(output));
+  }) as typeof fetch;
+  try {
+    await challengeAssessment(
+      run,
+      () => {},
+      new AbortController().signal,
+      'Review this unsupported source attribution.',
+    );
+    assert.equal(calls, 1);
+    assert.equal(JSON.stringify(run.evidence), before);
+    assert.equal(run.status, 'partial');
+    const capped = recoverableAssessment();
+    for (let i = 0; i < 2; i++)
+      capped.events.push({
+        id: `round-${i}`,
+        investigationId: capped.id,
+        timestamp: new Date().toISOString(),
+        agentId: 'verifier',
+        type: 'agent_started',
+        message: 'Controlled recorded verifier round',
+      });
+    await assert.rejects(
+      challengeAssessment(
+        capped,
+        () => {},
+        new AbortController().signal,
+        'Review again after the cap.',
+      ),
+      /maximum of two/,
+    );
+    assert.equal(calls, 1);
+  } finally {
+    globalThis.fetch = originalFetch;
+    restore();
+  }
+});
+
+test('a specialist can use a distinct committee model and records the provider model', async () => {
+  const restore = fakeKey();
+  try {
+    const result = await runClaudeAgent({
+      namespace: 'committee-model',
+      model: 'claude-opus-5-5',
+      role: 'Investment Committee',
+      task: 'Synthesize existing evidence.',
+      context: {},
+      previousEvidence: fixture().evidence,
+      budget: new TokenBudget(),
+      search: false,
+      fetcher: (async (_url, init) => {
+        assert.equal(JSON.parse(String(init?.body)).model, 'claude-opus-5-5');
+        return json({ ...response(fixture(), false), model: 'claude-opus-5-5' });
+      }) as typeof fetch,
+    });
+    assert.equal(result.model, 'claude-opus-5-5');
+    assert.equal(result.searches, 0);
+  } finally {
     restore();
   }
 });

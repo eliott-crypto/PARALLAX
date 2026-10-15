@@ -23,6 +23,8 @@ export const EvidenceSchema = z.object({
   ]),
   status: z.enum(['SUPPORTED', 'PARTIAL', 'UNVERIFIED', 'CONTRADICTED']),
   company: z.string().optional(),
+  correction: z.string().optional(),
+  reviewedAt: z.string().optional(),
 });
 export type Evidence = z.infer<typeof EvidenceSchema>;
 export const CausalLinkSchema = z.object({
@@ -94,6 +96,11 @@ export const FindingSchema = z.object({
   kind: z.enum(['FACT', 'COMPANY CLAIM', 'HYPOTHESIS', 'UNKNOWN']).default('HYPOTHESIS'),
 });
 export type Finding = z.infer<typeof FindingSchema>;
+export const EvidenceCorrectionSchema = z.object({
+  evidenceId: z.string(),
+  status: z.enum(['CONTRADICTED', 'UNVERIFIED', 'PARTIAL']),
+  reason: z.string(),
+});
 export const AgentOutputSchema = z.object({
   summary: z.string(),
   findings: z.array(FindingSchema),
@@ -101,6 +108,7 @@ export const AgentOutputSchema = z.object({
   companies: z.array(CompanySchema).max(3).optional(),
   causalChain: z.array(CausalLinkSchema).optional(),
   questions: z.array(z.string()).default([]),
+  corrections: z.array(EvidenceCorrectionSchema).optional(),
   disputedClaim: z.string().optional(),
   verification: z
     .enum(['SUPPORTED', 'CONTRADICTED', 'PARTIALLY SUPPORTED', 'UNRESOLVED'])
@@ -111,6 +119,7 @@ export const AgentOutputSchema = z.object({
 });
 export type AgentOutput = z.infer<typeof AgentOutputSchema>;
 export interface AgentRun {
+  model?: string;
   id: AgentId;
   status: 'queued' | 'running' | 'completed' | 'failed';
   startedAt?: string;
@@ -148,6 +157,7 @@ export interface Investigation {
   confidence: Confidence;
   error?: string;
   watched: boolean;
+  reviewNotes?: string[];
   model?: string;
   totalInputTokens: number;
   totalOutputTokens: number;
@@ -160,6 +170,7 @@ export interface RadarData {
   warning?: string;
 }
 export interface ApiStatus {
+  committeeModel?: string;
   configured: boolean;
   model: string;
   activeRuns: number;

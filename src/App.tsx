@@ -26,6 +26,7 @@ import {
   Check,
   Bell,
   PanelLeftClose,
+  PanelLeftOpen,
   ShieldCheck,
   AlertTriangle,
   Terminal,
@@ -39,7 +40,7 @@ import type {
   Evidence,
   Company,
 } from '../shared/types';
-import { api, post, dateLabel, readable } from './lib/api';
+import { api, post, dateLabel, readable, sourceCount } from './lib/api';
 import { Brand, CausalMap, EvidenceChart, MiniVisual, OrbitGraphic } from './components/Visuals';
 import InvestigationRoom from './components/InvestigationRoom';
 
@@ -78,7 +79,9 @@ export default function App() {
   const [query, setQuery] = useState('');
   const [sector, setSector] = useState('All sectors');
   const [search, setSearch] = useState('');
-  const [modal, setModal] = useState<'research' | 'settings' | 'search' | null>(null);
+  const [modal, setModal] = useState<'research' | 'settings' | 'search' | 'challenge' | null>(null);
+  const [challengeClaim, setChallengeClaim] = useState('');
+  const [challengeLoading, setChallengeLoading] = useState(false);
   const [scanLoading, setScanLoading] = useState(false);
   const [runLoading, setRunLoading] = useState(false);
   const [error, setError] = useState('');
@@ -90,30 +93,78 @@ export default function App() {
   const [sourceFilter, setSourceFilter] = useState('All sources');
   const [selectedSignal, setSelectedSignal] = useState<Signal | null>(null);
   const [mobileNav, setMobileNav] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [company, setCompany] = useState<Company | undefined>();
   const [pendingSignalId, setPendingSignalId] = useState<string | undefined>();
   const [copied, setCopied] = useState(false);
+  const runsRef = useRef(runs);
+  runsRef.current = runs;
+  const workspaceRefresh = useRef(0);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const notify = useCallback((message: string) => {
     setToast(message);
     clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setToast(''), 4000);
   }, []);
-  useEffect(() => {
-    Promise.allSettled([
-      api<ApiStatus>('/api/status'),
-      api<RadarData>('/api/radar'),
+  const refreshWorkspace = useCallback(async () => {
+    const generation = ++workspaceRefresh.current;
+    const startedAt = Date.now();
+    const baseline = new Map(runsRef.current.map((run) => [run.id, run]));
+    const [runResult, statusResult] = await Promise.allSettled([
       api<Investigation[]>('/api/investigations'),
-      api<Investigation>('/api/sample'),
-    ]).then((results) => {
-      const [a, b, c, d] = results;
-      if (a.status === 'fulfilled') setStatus(a.value);
-      if (b.status === 'fulfilled') setRadar(b.value);
-      else setError(b.reason.message);
-      if (c.status === 'fulfilled') setRuns(c.value);
-      if (d.status === 'fulfilled') setSample(d.value);
-      setLoading(false);
-    });
+      api<ApiStatus>('/api/status'),
+    ]);
+    if (generation !== workspaceRefresh.current) return;
+    if (statusResult.status === 'fulfilled') setStatus(statusResult.value);
+    if (runResult.status === 'fulfilled') {
+      setRuns((previous) => {
+        const localById = new Map(previous.map((run) => [run.id, run]));
+        const refreshed = runResult.value.map((incoming) => {
+          const local = localById.get(incoming.id);
+          if (!local || local === baseline.get(incoming.id)) return incoming;
+          // An SSE event or local action may arrive after this request started.
+          const timestamp = (run: Investigation) =>
+            Date.parse(run.completedAt ?? run.events.at(-1)?.timestamp ?? run.createdAt) || 0;
+          return timestamp(local) >= timestamp(incoming) ? local : incoming;
+        });
+        const receivedIds = new Set(refreshed.map((run) => run.id));
+        const justStarted = previous.filter(
+          (run) => !receivedIds.has(run.id) && Date.parse(run.createdAt) >= startedAt,
+        );
+        return [...justStarted, ...refreshed];
+      });
+    }
+  }, []);
+  const hasActiveResearch = runs.some((run) => run.status === 'running') || !!status?.activeRuns;
+  useEffect(() => {
+    if (!hasActiveResearch) return;
+    const interval = setInterval(() => void refreshWorkspace(), 15_000);
+    return () => clearInterval(interval);
+  }, [hasActiveResearch, refreshWorkspace]);
+  useEffect(() => {
+    void refreshWorkspace();
+    const linkedRunId = new URLSearchParams(window.location.hash.slice(1)).get('investigation');
+    if (linkedRunId && linkedRunId.length <= 200) {
+      api<Investigation>(`/api/investigations/${encodeURIComponent(linkedRunId)}`)
+        .then((run) => {
+          if (
+            new URLSearchParams(window.location.hash.slice(1)).get('investigation') === linkedRunId
+          )
+            openRun(run);
+        })
+        .catch(() =>
+          notify('This saved investigation is unavailable. Explore your research history.'),
+        );
+    }
+    Promise.allSettled([api<RadarData>('/api/radar'), api<Investigation>('/api/sample')]).then(
+      (results) => {
+        const [b, d] = results;
+        if (b.status === 'fulfilled') setRadar(b.value);
+        else setError(b.reason.message);
+        if (d.status === 'fulfilled') setSample(d.value);
+        setLoading(false);
+      },
+    );
     const key = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
@@ -127,7 +178,7 @@ export default function App() {
     };
     window.addEventListener('keydown', key);
     return () => window.removeEventListener('keydown', key);
-  }, []);
+  }, [refreshWorkspace, notify]);
   useEffect(() => {
     if (!current || current.status !== 'running') return;
     let source: EventSource | undefined;
@@ -172,13 +223,16 @@ export default function App() {
     };
   }, [current?.id, current?.status, notify]);
   function navigate(next: Page) {
+    window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
     setPage(next);
     setCurrent(null);
     setSearch('');
     setMobileNav(false);
+    void refreshWorkspace();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
   function openRun(run: Investigation) {
+    window.history.replaceState(null, '', `#${new URLSearchParams({ investigation: run.id })}`);
     setCurrent(run);
     setPage('Investigations');
     setModal(null);
@@ -221,6 +275,7 @@ export default function App() {
     try {
       const data = await post<RadarData>('/api/scan', { sector, query: search || undefined });
       setRadar(data);
+      setSearch('');
       notify(`${data.signals.length} evidence-backed signals retrieved.`);
     } catch (e) {
       setError((e as Error).message);
@@ -260,6 +315,43 @@ export default function App() {
       if (!status?.configured) setModal('settings');
     }
   }
+  function prepareChallenge() {
+    setChallengeClaim(
+      current?.agents.find((agent) => agent.id === 'bear')?.output?.disputedClaim ?? '',
+    );
+    setError('');
+    setModal('challenge');
+  }
+  async function launchChallenge() {
+    if (!current || challengeClaim.trim().length < 8) return;
+    setChallengeLoading(true);
+    setError('');
+    try {
+      const updated = await post<Investigation>(`/api/investigations/${current.id}/challenge`, {
+        claim: challengeClaim,
+      });
+      setRuns((previous) => [updated, ...previous.filter((run) => run.id !== updated.id)]);
+      openRun(updated);
+      notify(
+        'Fresh verification started. The thesis and assessment will incorporate its findings.',
+      );
+    } catch (error) {
+      setError((error as Error).message);
+    } finally {
+      setChallengeLoading(false);
+    }
+  }
+  async function finishAssessment() {
+    if (!current) return;
+    try {
+      const updated = await post<Investigation>(`/api/investigations/${current.id}/complete`);
+      setRuns((previous) => [updated, ...previous.filter((run) => run.id !== updated.id)]);
+      openRun(updated);
+      notify('Completed research preserved. The committee is finishing your assessment.');
+    } catch (error) {
+      notify((error as Error).message);
+    }
+  }
   async function cancel() {
     if (!current) return;
     try {
@@ -282,7 +374,13 @@ export default function App() {
     new Map((radar?.signals ?? []).flatMap((s) => s.companies).map((c) => [c.id, c])).values(),
   );
   const watched = runs.filter((r) => r.watched);
-  const active = runs.filter((r) => r.status === 'running').length;
+  const active = status?.activeRuns ?? runs.filter((r) => r.status === 'running').length;
+  const latestCompleted = runs
+    .filter((run) => run.status === 'completed' && run.mode !== 'sample')
+    .sort(
+      (a, b) => Date.parse(b.completedAt ?? b.createdAt) - Date.parse(a.completedAt ?? a.createdAt),
+    )[0];
+  const latestActive = runs.find((run) => run.status === 'running');
   const shownRuns = (page === 'Watchtower' ? watched : runs).filter((r) =>
     `${r.title} ${r.query}`.toLowerCase().includes(search.toLowerCase()),
   );
@@ -292,16 +390,34 @@ export default function App() {
     setSourceFilter('All sources');
   };
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
       <aside className={`sidebar ${mobileNav ? 'mobile-open' : ''}`}>
         <div className="sidebar-brand">
           <Brand />
           <button
             className="icon-button sidebar-collapse"
-            onClick={() => setMobileNav(false)}
-            title="Close navigation"
+            onClick={() => {
+              if (window.matchMedia('(max-width: 700px)').matches) setMobileNav(false);
+              else setSidebarCollapsed((collapsed) => !collapsed);
+            }}
+            title={
+              mobileNav
+                ? 'Close navigation'
+                : sidebarCollapsed
+                  ? 'Expand sidebar'
+                  : 'Collapse sidebar'
+            }
+            aria-label={
+              mobileNav
+                ? 'Close navigation'
+                : sidebarCollapsed
+                  ? 'Expand sidebar'
+                  : 'Collapse sidebar'
+            }
+            aria-expanded={mobileNav || !sidebarCollapsed}
           >
-            <PanelLeftClose size={16} />
+            <PanelLeftClose size={16} className="collapse-sidebar-icon" />
+            <PanelLeftOpen size={16} className="expand-sidebar-icon" />
           </button>
         </div>
         <button className="workspace-switch" onClick={() => setModal('settings')}>
@@ -319,6 +435,8 @@ export default function App() {
               key={name}
               className={`nav-item ${page === name ? 'active' : ''}`}
               onClick={() => navigate(name)}
+              title={name}
+              aria-label={name}
             >
               <span className="nav-icon">
                 <Icon size={18} strokeWidth={1.5} />
@@ -334,14 +452,24 @@ export default function App() {
           ))}
         </nav>
         <div className="sidebar-divider" />
-        <button className="nav-item" onClick={() => openSources(undefined, evidence)}>
+        <button
+          className="nav-item"
+          onClick={() => openSources()}
+          title="Evidence library"
+          aria-label="Evidence library"
+        >
           <span className="nav-icon">
             <BookOpen size={18} strokeWidth={1.5} />
           </span>
           <span>Evidence library</span>
           <ArrowUpRight size={13} className="nav-trailing" />
         </button>
-        <button className="nav-item" onClick={() => setModal('settings')}>
+        <button
+          className="nav-item"
+          onClick={() => setModal('settings')}
+          title="Workspace settings"
+          aria-label="Workspace settings"
+        >
           <span className="nav-icon">
             <Settings2 size={18} strokeWidth={1.5} />
           </span>
@@ -365,7 +493,12 @@ export default function App() {
               Explore research sample <ArrowUpRight size={15} />
             </button>
           </div>
-          <button className="profile" onClick={() => setModal('settings')}>
+          <button
+            className="profile"
+            onClick={() => setModal('settings')}
+            title="Personal workspace settings"
+            aria-label="Personal workspace settings"
+          >
             <span className="profile-avatar">P</span>
             <div>
               <strong>Personal workspace</strong>
@@ -379,14 +512,22 @@ export default function App() {
       <main className="main">
         <header className="topbar">
           <div className="breadcrumb">
-            <button className="mobile-logo" onClick={() => setMobileNav(!mobileNav)}>
+            <button
+              className="mobile-logo"
+              aria-label={mobileNav ? 'Close navigation' : 'Open navigation'}
+              onClick={() => setMobileNav(!mobileNav)}
+            >
               <Brand compact />
             </button>
             <Globe2 size={19} strokeWidth={1.4} />
             <span>{current ? 'Investigation room' : page}</span>
           </div>
           <div className="topbar-right">
-            <button className="global-search" onClick={() => setModal('search')}>
+            <button
+              className="global-search"
+              aria-label="Search workspace"
+              onClick={() => setModal('search')}
+            >
               <Search size={17} />
               <span>Search anything</span>
               <kbd>⌘ K</kbd>
@@ -396,7 +537,11 @@ export default function App() {
               {status?.configured ? 'Claude connected' : 'Sample mode'}
               <ChevronDown size={12} />
             </button>
-            <button className="topbar-avatar" onClick={() => setModal('settings')}>
+            <button
+              className="topbar-avatar"
+              aria-label="Workspace settings"
+              onClick={() => setModal('settings')}
+            >
               P
             </button>
           </div>
@@ -410,6 +555,8 @@ export default function App() {
               onWatch={() => updateWatch(current)}
               onRecheck={() => recheck(current)}
               onCancel={cancel}
+              onComplete={finishAssessment}
+              onChallenge={prepareChallenge}
             />
           ) : (
             <>
@@ -504,7 +651,7 @@ export default function App() {
                       />
                       <Metric
                         label="Evidence sources"
-                        value={String(evidence.length).padStart(2, '0')}
+                        value={String(sourceCount(evidence)).padStart(2, '0')}
                         detail="Traceable, inspectable citations"
                         variant={2}
                       />
@@ -515,6 +662,41 @@ export default function App() {
                         variant={3}
                       />
                     </div>
+                  )}
+                  {page === 'Overview' && latestCompleted && (
+                    <section className="panel saved-run-banner">
+                      <span className="saved-run-icon">
+                        <ShieldCheck size={23} strokeWidth={1.4} />
+                      </span>
+                      <div>
+                        <div className="eyebrow">COMPLETED CLAUDE INVESTIGATION</div>
+                        <h3>{latestCompleted.title}</h3>
+                        <p>
+                          {sourceCount(latestCompleted.evidence)} cited sources ·{' '}
+                          {
+                            latestCompleted.agents.filter((agent) => agent.status === 'completed')
+                              .length
+                          }{' '}
+                          agents completed ·{' '}
+                          {dateLabel(latestCompleted.completedAt ?? latestCompleted.createdAt)}
+                        </p>
+                      </div>
+                      <button className="button ghost" onClick={() => openRun(latestCompleted)}>
+                        <History size={14} />
+                        Replay completed investigation <ArrowUpRight size={14} />
+                      </button>
+                    </section>
+                  )}
+                  {page === 'Overview' && latestActive && (
+                    <button className="active-run-banner" onClick={() => openRun(latestActive)}>
+                      <span className="status-dot active" />
+                      <span>
+                        <b>Research in progress</b> {latestActive.title}
+                      </span>
+                      <span>
+                        Open investigation <ArrowUpRight size={13} />
+                      </span>
+                    </button>
                   )}
                   <div className="section-heading">
                     <div>
@@ -579,7 +761,7 @@ export default function App() {
                     </div>
                   )}
                   <div className="signal-grid">
-                    {loading ? (
+                    {loading || scanLoading ? (
                       <>
                         {[0, 1, 2].map((i) => (
                           <div className="panel skeleton" key={i} />
@@ -592,6 +774,9 @@ export default function App() {
                           <SignalCard
                             key={signal.id}
                             signal={signal}
+                            sourceTotal={sourceCount(
+                              evidence.filter((entry) => signal.evidenceIds.includes(entry.id)),
+                            )}
                             index={i}
                             onOpen={() => setSelectedSignal(signal)}
                             onResearch={() => prepareResearch(signal, signal.companies[0])}
@@ -816,10 +1001,11 @@ export default function App() {
                               <p>{run.query}</p>
                               <div className="investigation-chips">
                                 <span>
-                                  {run.agents.filter((a) => a.status === 'completed').length}/9
-                                  agents completed
+                                  {run.mode === 'sample'
+                                    ? '9 perspectives illustrated'
+                                    : `${run.agents.filter((a) => a.status === 'completed').length}/9 agents completed`}
                                 </span>
-                                <span>{run.evidence.length} cited sources</span>
+                                <span>{sourceCount(run.evidence)} cited sources</span>
                                 {run.decision && (
                                   <span className="decision-chip">{readable(run.decision)}</span>
                                 )}
@@ -921,7 +1107,56 @@ export default function App() {
             >
               <X size={19} />
             </button>
-            {modal === 'research' ? (
+            {modal === 'challenge' ? (
+              <>
+                <div className="modal-icon">
+                  <ShieldCheck size={25} />
+                </div>
+                <div className="eyebrow">CHALLENGE THE THESIS</div>
+                <h2 id="modal-title">Which claim needs another look?</h2>
+                <p>
+                  The Verifier will research this objection, the Bull will revise its position, and
+                  the committee will update the assessment. Earlier findings stay in the audit
+                  trail.
+                </p>
+                <label className="field-label" htmlFor="challenge-claim">
+                  DISPUTED CLAIM
+                </label>
+                <textarea
+                  id="challenge-claim"
+                  autoFocus
+                  value={challengeClaim}
+                  onChange={(event) => setChallengeClaim(event.target.value)}
+                  maxLength={2000}
+                  placeholder="e.g. Does the cited customer evidence actually describe this company, or a competitor?"
+                />
+                <div className="textarea-meta">
+                  <span>One additional verification round per investigation.</span>
+                  <span>{challengeClaim.length}/2000</span>
+                </div>
+                {error && (
+                  <div className="error-banner">
+                    <AlertTriangle size={16} />
+                    <span>{error}</span>
+                  </div>
+                )}
+                <button
+                  className="button primary full-width"
+                  onClick={launchChallenge}
+                  disabled={challengeLoading || challengeClaim.trim().length < 8}
+                >
+                  {challengeLoading ? (
+                    <LoaderCircle size={16} className="spinning" />
+                  ) : (
+                    <ShieldCheck size={16} />
+                  )}{' '}
+                  {challengeLoading ? 'Starting verification…' : 'Verify and revise thesis'}
+                </button>
+                <p className="modal-footnote">
+                  Uses live research and the investigation’s remaining execution budget.
+                </p>
+              </>
+            ) : modal === 'research' ? (
               <>
                 <div className="modal-icon">
                   <Network size={25} strokeWidth={1.3} />
@@ -1120,7 +1355,11 @@ export default function App() {
                       <div>
                         <strong>{s.title}</strong>
                         <small>
-                          {s.sector} · {s.sourceCount} sources
+                          {s.sector} ·{' '}
+                          {sourceCount(
+                            evidence.filter((entry) => s.evidenceIds.includes(entry.id)),
+                          )}{' '}
+                          sources
                         </small>
                       </div>
                       <ArrowUpRight size={15} />
@@ -1181,7 +1420,12 @@ export default function App() {
             <p>{selectedSignal.summary}</p>
             <div className="signal-brief-meta">
               <span>Event: {dateLabel(selectedSignal.date)}</span>
-              <span>{selectedSignal.sourceCount} sources</span>
+              <span>
+                {sourceCount(
+                  evidence.filter((entry) => selectedSignal.evidenceIds.includes(entry.id)),
+                )}{' '}
+                sources
+              </span>
               <span>{readable(selectedSignal.confidence)} confidence</span>
             </div>
             <div className="brief-section">
@@ -1257,7 +1501,8 @@ export default function App() {
                       sourceDrawer.evidence.filter(
                         (e) => !sourceDrawer.ids?.length || sourceDrawer.ids.includes(e.id),
                       ).length
-                    }
+                    }{' '}
+                    records
                   </span>
                 </h2>
               </div>
@@ -1270,7 +1515,12 @@ export default function App() {
               </button>
             </div>
             <p className="drawer-intro">
-              Original sources, explicit provenance and the limits of what we know.
+              {sourceCount(
+                sourceDrawer.evidence.filter(
+                  (entry) => !sourceDrawer.ids?.length || sourceDrawer.ids.includes(entry.id),
+                ),
+              )}{' '}
+              distinct sources. Individual evidence records preserve each claim and its provenance.
             </p>
             <div className="drawer-filters">
               <select
@@ -1324,8 +1574,17 @@ export default function App() {
                       <small>SUPPORTS THE CLAIM</small>
                       {e.claim}
                     </div>
+                    {e.correction && (
+                      <div className="uncertainty-box source-correction">
+                        <ShieldCheck size={17} />
+                        <div>
+                          <strong>Corrected after verification</strong>
+                          <p>{e.correction}</p>
+                        </div>
+                      </div>
+                    )}
                     <div className="evidence-dates">
-                      <span>Published {dateLabel(e.publishedAt)}</span>
+                      <span>Reported publication {dateLabel(e.publishedAt)}</span>
                       <span>Retrieved {dateLabel(e.retrievedAt)}</span>
                     </div>
                     <a
@@ -1376,11 +1635,13 @@ function Metric({
 }
 function SignalCard({
   signal,
+  sourceTotal,
   index,
   onOpen,
   onResearch,
 }: {
   signal: Signal;
+  sourceTotal: number;
   index: number;
   onOpen: () => void;
   onResearch: () => void;
@@ -1404,7 +1665,7 @@ function SignalCard({
         <div className="signal-metadata">
           <span>
             <BookOpen size={12} />
-            {signal.sourceCount} sources
+            {sourceTotal} sources
           </span>
           <span className="confidence-label">{readable(signal.confidence)} confidence</span>
         </div>
