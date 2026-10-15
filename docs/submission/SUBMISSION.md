@@ -6,7 +6,7 @@ PARALLAX gives early-stage investors a Claude research team to find overlooked s
 
 ## Live product or output link
 
-https://eliott-crypto.github.io/PARALLAX/
+https://recording-apps-rochester-cite.trycloudflare.com
 
 The hosted output lets judges explore actual recorded company research, citations and agent hand-offs. The full local product runs fresh Claude investigations with a server-side Anthropic key. The public output never exposes a key or pretends to run new research.
 

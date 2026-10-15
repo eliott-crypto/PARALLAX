@@ -32,7 +32,7 @@ for (const args of [
   const result = spawnSync(process.execPath, args, { cwd: root, env, stdio: 'inherit' });
   if (result.status !== 0) process.exit(result.status || 1);
 }
-const artifacts: Record<string, string> = {};
+const artifacts: Record<string, string> = { ...snapshot.artifacts };
 for (const [source, target, label] of [
   ['docs/submission/pitch.pdf', 'pitch.pdf', 'pitch'],
   ['docs/submission/run-proof.zip', 'run-proof.zip', 'proof'],

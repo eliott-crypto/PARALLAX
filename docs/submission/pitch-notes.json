@@ -15,19 +15,16 @@
   },
   {
     "slide": 3,
-    "notes": "Demonstrate Themes, choose a theme, and open a company. The preferred valuation ceiling is a preference, not a guarantee. A lower disclosed valuation alone does not establish relative value. The board may admit fewer than five when evidence is missing. Manual priority ordering stays distinct from the agent ranking. This screenshot reflects the actual prepared workspace, and the presenter must state its actual shortlist size.",
+    "notes": "Actual completed source-reviewed shortlist. Prices are historical company-stated or reported marks, with dates and qualifications. The source audit includes external review.",
     "sources": [
-      "https://github.com/eliott-crypto/PARALLAX/blob/main/shared/boards.ts",
-      "https://github.com/eliott-crypto/PARALLAX/blob/main/server/boards.ts",
-      "/Users/pascalboneu/Desktop/PARALLAX/docs/screenshots/top5.jpg"
+      "https://eliott-crypto.github.io/PARALLAX/"
     ]
   },
   {
     "slide": 4,
-    "notes": "Click Remove company claims in Universe. The independent lens retains supported INDEPENDENT_REPORT, RESEARCH_PUBLICATION and PUBLIC_PROFESSIONAL_RECORD records. Distance uses supported records divided by unique cited evidence IDs. Height uses the latest completed linked review confidence when present, otherwise the shortlist assessment. Horizontal direction is layout only. Ghost markers preserve the original position. The lens is a reversible deterministic scenario, not new live research or a probability of success.",
+    "notes": "Demonstrate the independence lens. This visual measures admitted research support, not expected returns.",
     "sources": [
-      "https://github.com/eliott-crypto/PARALLAX/blob/main/src/lib/universe.ts",
-      "https://github.com/eliott-crypto/PARALLAX/blob/main/src/components/ThesisUniverse.tsx"
+      "https://github.com/eliott-crypto/PARALLAX/blob/main/src/lib/universe.ts"
     ]
   },
   {

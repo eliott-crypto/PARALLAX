@@ -653,8 +653,9 @@ export default function App() {
                 <strong>Real research, published as a browsable snapshot.</strong> Explore sources,
                 the team’s reasoning and the Universe. Reordering and saving stay in this browser;
                 new Claude research runs in the local app.
-                {(outputArtifacts.pitch || outputArtifacts.proof) && (
+                {(outputArtifacts.live || outputArtifacts.pitch || outputArtifacts.proof) && (
                   <span style={{ display: 'flex', gap: 16, marginTop: 8 }}>
+                    {outputArtifacts.live && (<a href={outputArtifacts.live}><strong>Open live app · start research</strong></a>)}
                     {outputArtifacts.pitch && (
                       <a href={outputArtifacts.pitch} target="_blank" rel="noreferrer">
                         Open pitch deck{' '}
