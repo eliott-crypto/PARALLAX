@@ -1,0 +1,762 @@
+PARALLAX — ACTUAL CLAUDE INVESTIGATION RUN PROOF
+
+READ FIRST: This is one real retained research execution with its actual failures, corrections and external source-review interventions. The final committee assessment is authoritative. Historical messages and raw JSON payloads contain withdrawn claims and unsupported earlier interpretations; they are retained as an audit trail, not endorsed findings. The final memo omits download quantities, ARR estimates, valuation multiples and claimed margin compression.
+
+FINAL RESULT
+Decision: MONITOR
+Confidence: LOW
+Final model recorded by provider: claude-opus-5-5
+Browserbase remains a credible early research subject. The founder's professional history is well corroborated, and the customer-attribution correction is verified. The core thesis is unproven: no evidence shows that cheaper inference gives Browserbase a durable advantage over Steel or Browserless. Stagehand is MIT-licensed and needs no account. SDK-to-paid conversion, realised margins, retention and current ARR are unknown. Salesforce and Visa claims are withdrawn. Decision: MONITOR, pending targeted diligence.
+
+PROVENANCE
+Investigation/source ID: 6b8771ef-7394-40b7-b702-222cbbad204f
+Source file: recordings/6b8771ef-7394-40b7-b702-222cbbad204f.json
+Source repository: https://github.com/eliott-crypto/PARALLAX
+SHA-256 of byte-identical run-proof.json: 3d8e887414f6bdb5caadc85695a2b51928bd8ae9d0a3809f7a4fbfeebc142d98
+Mode: recorded replay of an actual live execution; no API calls are made by opening this file.
+Status: completed; nine named agent roles have final completed states. These are roles, not a claim of exactly nine model requests.
+Started UTC: 2026-10-15T11:37:55.875Z
+Final completion UTC: 2026-10-15T12:13:35.484Z
+Elapsed wall clock: 35 minutes 39 seconds (2139 whole seconds; exact timestamp interval 2139.609 seconds).
+Timing qualification: This interval includes the budget interruption, idle/review time, a second verification challenge, external source-quality audit notes and resumed committee assessments. It is NOT 35 minutes of uninterrupted autonomous operation.
+Provider usage retained: 303540 input + 44738 output = 348278 tokens.
+Evidence retained: 28 claim records across 22 distinct URLs. Multiple claims can cite the same URL.
+Actual audit events: 58; 12 recorded search calls summed across agent role counters; 6 search-completion events.
+Run-level configured model: claude-sonnet-4-6. Earlier agent rows do not retain separate provider-model fields; do not infer individual model provenance from missing values. Final committee provider model is explicitly retained as claude-opus-5-5.
+Per-agent counters are aggregated retained usage across revisions/recoveries; agent startedAt/completedAt fields are not a reliable uninterrupted compute-duration measurement.
+
+ACTUAL AGENT USAGE
+| Agent | Final status | Input tokens | Output tokens | Total tokens | Recorded searches |
+| --- | --- | ---: | ---: | ---: | ---: |
+| Scout | completed | 19233 | 3905 | 23138 | 2 |
+| Causal Analyst | completed | 3471 | 1430 | 4901 | 0 |
+| Company Hunter | completed | 34250 | 6456 | 40706 | 2 |
+| Founder Analyst | completed | 26425 | 4234 | 30659 | 2 |
+| Competitive Analyst | completed | 28320 | 3662 | 31982 | 2 |
+| Bull | completed | 34248 | 8304 | 42552 | 0 |
+| Bear | completed | 12463 | 1214 | 13677 | 0 |
+| Verifier | completed | 74304 | 5891 | 80195 | 4 |
+| Investment Committee | completed | 70826 | 9642 | 80468 | not separately recorded |
+
+WHAT THE TEAM DID
+Scout -> Causal Analyst -> Company Hunter -> Founder + Competitive analysts in parallel -> Bull + Bear in parallel -> Verifier -> Bull revision -> Investment Committee. The audit includes a second, explicitly requested evidence challenge and committee-only resumptions. Separate model calls performed these stages; the log includes output-format recovery and the first committee budget failure.
+
+THE CORRECTION THAT MATTERS
+Original withdrawn evidence ID: hunter-25db5414b0d8
+Its recorded status is CONTRADICTED. The initial customer list misread the structure of the Contrary report. The fresh verification at 2026-10-15T12:02:51.715Z recorded that Salesforce and Visa were named under Sauce Labs, a competitor, rather than Browserbase.
+Corrective source ID: verifier-challenge-13449d901849
+Source URL: https://research.contrary.com/company/browserbase
+The final committee explicitly withdrew the Salesforce/Visa attribution. Its account-free Stagehand finding also withdrew the SDK lock-in framing: paid conversion, retention, realised margins and current ARR remain unknown.
+The retained historical download-correction messages are themselves superseded by the final source audit. Current weekly npm data cannot establish the disputed historical measurement period; the final memo omits these figures.
+
+FINAL COMMITTEE FINDINGS
+1. Withdrawn: Salesforce and Visa are not verified Browserbase customers
+Contrary lists Salesforce and Visa as Sauce Labs customers. It names Perplexity, Convergence and Vercel for Browserbase. Outset, an interested investor, adds Airtable, Instacart, Notion and Stripe. Stripe's vendor billing story does not show Stripe buys browser automation.
+Evidence IDs: verifier-challenge-13449d901849, verifier-challenge-aeb5aff87296, hunter-25db5414b0d8, hunter-d77afe69cc3a
+
+2. Stagehand is free and account-free, so conversion is unproven
+Browserbase's official page says Stagehand is MIT-licensed and never requires a Browserbase account. Developer distribution and willingness to pay are therefore hypotheses. Download quantities are omitted. SDK-to-paid conversion is unknown, and aggregate vendor-reported revenue cannot establish it.
+Evidence IDs: verifier-e3c389be8d46, scout-593bbf1b20d2, hunter-d77afe69cc3a
+
+3. No durable advantage from cheaper inference is shown
+Steel offers self-hosting and new managed tiers. Kernel and Browserless are credible alternatives. List prices do not measure realised margins, and self-hosting has operating costs. Compliance or orchestration differentiation is a hypothesis; competitor capabilities are not shown absent. Current ARR, margin and retention are unknown.
+Evidence IDs: competitive-aebdaca0cb7c, scout-547e702f7cc6, scout-c55f7b339c2a, competitive-70f86571ae7d, scout-103aceeae461, verifier-ae8ccc799bf0
+
+4. Founder history is corroborated; equity structure is unknown
+Conference records and Crunchbase give a consistent sequence for Paul Klein IV: Twilio, then Stream Club CTO, then Mux, then Browserbase from January 2024. Specific earlier dates partly rely on self-report. Public biographies call him sole founder but do not establish the cap table.
+Evidence IDs: founder-383f487fa250, founder-bf10ab594fc3, founder-c2712bd77cbb, founder-e8cfd0f9bb38, founder-802439034345
+
+Final revision:
+The Salesforce and Visa customer claim is withdrawn. The distribution-moat framing is withdrawn because Stagehand is account-free. Download, ARR, valuation-multiple and margin-compression figures are omitted as unsupported. Revenue scale, retention, margins and orchestration attach remain unknown. The thesis is now a hypothesis requiring cohort, margin and customer-reference diligence.
+
+Next diligence:
+1. Can Browserbase provide cohort data showing what share of Stagehand-originated developers become paying Browserbase accounts, and how those cohorts retain over time?
+2. What is Browserbase's realised per-session gross margin after compute, proxy and support costs? Separately, what total cost of ownership do Steel and Kernel users report once self-hosting operations are included?
+3. Will Perplexity, Vercel, Notion or other named customers confirm usage, commitment terms and switching triggers? Do they confirm whether Director, Model Gateway or compliance features drive retention, and whether Stripe uses Browserbase for automation?
+
+EXPLICIT INTERRUPTION AND EXTERNAL REVIEW HISTORY
+2026-10-15T11:45:36.840Z: First committee stage failed at the investigation token budget. Completed research was retained.
+2026-10-15T12:01:37.030Z: A second independent verification round began on an explicit evidence challenge.
+2026-10-15T12:02:51.715Z: Customer-attribution correction recorded.
+2026-10-15T12:03:54.609Z: Revised Bull stage completed after the challenge.
+2026-10-15T12:03:54.621Z: Committee assessment resumed.
+2026-10-15T12:08:08.614Z: External source-review notes supplied; committee resumed again.
+2026-10-15T12:13:01.617Z: Further external quality constraints supplied; final committee resumed on Opus.
+2026-10-15T12:13:35.484Z: Retained run reached final completed state.
+
+External review notes retained verbatim:
+NOTE 1: Independent source-quality audit: omit the 5.78M download figure and its publication date because the historical measurement period has not been independently established. A current weekly download count cannot prove an earlier monthly or cumulative count. Stripe is a commercially interested vendor customer story: aggregate revenue and billing activity do not prove SDK-to-paid cohort conversion. GetLatka and pricing-blog revenue numbers are historical unaudited third-party estimates; do not present them as current verified ARR or derive a valuation multiple. Quoted session prices do not measure realised margins; self-hosting has operating costs. Public founder biographies do not establish a cap table or absence of other equity holders. Investor customer lists are interested claims, and Stripe billing integration does not establish that Stripe buys browser automation. Do not assert that competitors lack compliance capabilities from a comparison article. Keep these as explicit unknowns, and base the memo on the verified customer-attribution correction, the official Stagehand no-account requirement, and conditional next diligence actions.
+
+NOTE 2: Final evidence-quality constraint: the earlier draft still repeats unsupported metrics. OMIT all Stagehand download quantities and publication dates because the historical period was not validated. OMIT ARR estimates and derived valuation multiples; historical third-party estimates are not current audited ARR. OMIT claims of empirical margin compression: list prices do not measure margins, and self-hosting is not free. Aggregate vendor-reported revenue does not establish SDK cohort conversion. Do not describe investor/vendor customer lists as independent financial audits, or claim competitors lack compliance capabilities. Retain the real Contrary customer-attribution correction and official Stagehand MIT/no-account evidence. Describe developer distribution and willingness to pay as hypotheses. Return a concise qualitative decision with clear unknowns and concrete diligence actions. No false numerical precision.
+
+SOURCE ID INDEX
+These are retained record statuses, not a blanket endorsement of every historical claim. Read the final committee and review notes first. Claim text and historical payloads remain available in the byte-identical JSON.
+
+01. scout-d40df0132fd7
+Recorded status: SUPPORTED; type: INDEPENDENT_REPORT
+Title: Browserbase funding, news & analysis
+URL: https://sacra.com/c/browserbase/
+Retrieved: 2026-10-15T11:39:08.721Z
+Reported publication: 2025-06-18
+
+02. scout-103aceeae461
+Recorded status: SUPPORTED; type: FIRST_PARTY_COMPANY_CLAIM
+Title: Browserbase Raises $40M Series B
+URL: https://www.browserbase.com/blog/series-b-and-beyond
+Retrieved: 2026-10-15T11:39:08.721Z
+Reported publication: 2025-06-18
+
+03. scout-593bbf1b20d2
+Recorded status: PARTIAL; type: INDEPENDENT_REPORT
+Title: History of Browserbase: Funding, Stagehand & Timeline (2026)
+URL: https://www.taskade.com/blog/history-of-browserbase
+Retrieved: 2026-10-15T11:39:08.721Z
+Reported publication: 2026-10-15
+
+04. scout-547e702f7cc6
+Recorded status: SUPPORTED; type: FIRST_PARTY_COMPANY_CLAIM
+Title: Steel vs Browserbase: a practical comparison - Steel
+URL: https://steel.dev/blog/steel-vs-browserbase-a-practical-comparison
+Retrieved: 2026-10-15T11:39:08.721Z
+Reported publication: unknown
+
+05. scout-c55f7b339c2a
+Recorded status: SUPPORTED; type: INDEPENDENT_REPORT
+Title: 6 Best Browserbase Alternatives (2026): Features & Pricing
+URL: https://www.tinyfish.ai/blog/browserbase-alternatives
+Retrieved: 2026-10-15T11:39:08.721Z
+Reported publication: 2026
+
+06. scout-5d48eee4e531
+Recorded status: SUPPORTED; type: PUBLIC_PROFESSIONAL_RECORD
+Title: Paul Klein
+URL: https://qconsf.com/speakers/paulklein
+Retrieved: 2026-10-15T11:39:08.721Z
+Reported publication: 2025
+
+07. scout-112a8d3a427e
+Recorded status: SUPPORTED; type: INDEPENDENT_REPORT
+Title: Report: Browserbase Business Breakdown & Founding Story
+URL: https://research.contrary.com/company/browserbase
+Retrieved: 2026-10-15T11:39:08.721Z
+Reported publication: 2025-09-04
+
+08. hunter-d77afe69cc3a
+Recorded status: SUPPORTED; type: OFFICIAL_DOCUMENT
+Title: Browserbase Powers Web Browsing for AI Agents and Apps with Stripe’s Usage-Based Billing
+URL: https://stripe.com/customers/browserbase
+Retrieved: 2026-10-15T11:41:40.629Z
+Reported publication: unknown
+
+09. hunter-6b51f8dc6b0b
+Recorded status: PARTIAL; type: INDEPENDENT_REPORT
+Title: History of Browserbase: Funding, Stagehand & Timeline (2026)
+URL: https://www.taskade.com/blog/history-of-browserbase
+Retrieved: 2026-10-15T11:41:40.629Z
+Reported publication: 2026-10-15
+
+10. hunter-02ed7b572231
+Recorded status: SUPPORTED; type: FIRST_PARTY_COMPANY_CLAIM
+Title: Steel
+URL: https://steel.dev/
+Retrieved: 2026-10-15T11:41:40.629Z
+Reported publication: unknown
+
+11. hunter-25db5414b0d8
+Recorded status: CONTRADICTED; type: INDEPENDENT_REPORT
+Title: Report: Browserbase Business Breakdown & Founding Story
+URL: https://research.contrary.com/company/browserbase
+Retrieved: 2026-10-15T11:41:40.629Z
+Reported publication: 2025-09-04
+
+12. competitive-70f86571ae7d
+Recorded status: SUPPORTED; type: INDEPENDENT_REPORT
+Title: 7 Best Cloud Browsers for AI Agents in 2026: Browser Infrastructure Compared — Proxidize Blog
+URL: https://proxidize.com/blog/best-cloud-browsers-for-ai-agents/
+Retrieved: 2026-10-15T11:42:54.379Z
+Reported publication: 2026
+
+13. competitive-aebdaca0cb7c
+Recorded status: SUPPORTED; type: INDEPENDENT_REPORT
+Title: Browserbase Alternatives: Steel vs Hyperbrowser Comparison - Sendwin
+URL: https://blog.send.win/browserbase-alternatives-steel-vs-hyperbrowser-comparison/
+Retrieved: 2026-10-15T11:42:54.379Z
+Reported publication: 2026-10-07
+
+14. competitive-926d63b103ea
+Recorded status: UNVERIFIED; type: INDEPENDENT_REPORT
+Title: Top 10 Anchor Browser Alternatives (2026)
+URL: https://o-mega.ai/articles/top-10-anchor-browser-alternatives-2026
+Retrieved: 2026-10-15T11:42:54.379Z
+Reported publication: 2026
+
+15. founder-383f487fa250
+Recorded status: SUPPORTED; type: PUBLIC_PROFESSIONAL_RECORD
+Title: Paul Klein
+URL: https://qconsf.com/speakers/paulklein
+Retrieved: 2026-10-15T11:42:56.109Z
+Reported publication: 2025
+
+16. founder-bf10ab594fc3
+Recorded status: SUPPORTED; type: PUBLIC_PROFESSIONAL_RECORD
+Title: Paul Klein IV: Bio, Work & Ideas
+URL: https://ai.engineer/speakers/paul-klein-iv
+Retrieved: 2026-10-15T11:42:56.109Z
+Reported publication: 2026
+
+17. founder-c2712bd77cbb
+Recorded status: SUPPORTED; type: PUBLIC_PROFESSIONAL_RECORD
+Title: Paul Klein IV - Founder @ Browserbase - Crunchbase Person Profile
+URL: https://www.crunchbase.com/person/paul-klein
+Retrieved: 2026-10-15T11:42:56.109Z
+Reported publication: unknown
+
+18. founder-d6155543b240
+Recorded status: SUPPORTED; type: INDEPENDENT_REPORT
+Title: Report: Browserbase Business Breakdown & Founding Story
+URL: https://research.contrary.com/company/browserbase
+Retrieved: 2026-10-15T11:42:56.109Z
+Reported publication: 2025-09-04
+
+19. founder-e8cfd0f9bb38
+Recorded status: SUPPORTED; type: FIRST_PARTY_COMPANY_CLAIM
+Title: Founders in Focus: Paul Klein IV of Browserbase
+URL: https://www.okta.com/blog/company-and-culture/founders-in-focus-paul-klein-iv-of-browserbase/
+Retrieved: 2026-10-15T11:42:56.109Z
+Reported publication: unknown
+
+20. founder-802439034345
+Recorded status: PARTIAL; type: INDEPENDENT_REPORT
+Title: History of Browserbase: Funding, Stagehand & Timeline (2026)
+URL: https://www.taskade.com/blog/history-of-browserbase
+Retrieved: 2026-10-15T11:42:56.109Z
+Reported publication: 2026-10-15
+
+21. founder-3f013a006d5a
+Recorded status: SUPPORTED; type: FIRST_PARTY_COMPANY_CLAIM
+Title: From 500 Rejections to a $300M Company: Paul Klein IV on Solo Founding Browserbase
+URL: https://solofounders.com/blog/from-500-rejections-to-a-300m-company-paul-klein-iv-on-solo-founding-browserbase/
+Retrieved: 2026-10-15T11:42:56.109Z
+Reported publication: unknown
+
+22. founder-cb9f77dacd58
+Recorded status: SUPPORTED; type: INDEPENDENT_REPORT
+Title: BREAKING: Browserbase Raises $40M Series 🅱️ to Power AI Agents & Vibe Coders
+URL: https://www.sourcery.vc/p/breaking-browserbase-raises-40m-series
+Retrieved: 2026-10-15T11:42:56.109Z
+Reported publication: unknown
+
+23. verifier-e3c389be8d46
+Recorded status: SUPPORTED; type: FIRST_PARTY_COMPANY_CLAIM
+Title: Stagehand
+URL: https://www.browserbase.com/stagehand
+Retrieved: 2026-10-15T11:44:46.953Z
+Reported publication: unknown
+
+24. verifier-00b830925026
+Recorded status: PARTIAL; type: INDEPENDENT_REPORT
+Title: Browserbase Pricing
+URL: https://www.usagepricing.com/blueprint/browserbase
+Retrieved: 2026-10-15T11:44:46.953Z
+Reported publication: unknown
+
+25. verifier-ae8ccc799bf0
+Recorded status: PARTIAL; type: ANALYST_INFERENCE
+Title: Browserbase Revenue 2025: $4.4M Est. ARR, $67.5M Raised
+URL: https://getlatka.com/companies/browserbase.com
+Retrieved: 2026-10-15T11:44:46.953Z
+Reported publication: unknown
+
+26. verifier-challenge-13449d901849
+Recorded status: SUPPORTED; type: INDEPENDENT_REPORT
+Title: Report: Browserbase Business Breakdown & Founding Story
+URL: https://research.contrary.com/company/browserbase
+Retrieved: 2026-10-15T12:02:51.714Z
+Reported publication: 2025-09-04
+
+27. verifier-challenge-e5ab12077353
+Recorded status: SUPPORTED; type: OFFICIAL_DOCUMENT
+Title: @browserbasehq/stagehand - npm
+URL: https://www.npmjs.com/package/@browserbasehq/stagehand
+Retrieved: 2026-10-15T12:02:51.714Z
+Reported publication: unknown
+
+28. verifier-challenge-aeb5aff87296
+Recorded status: SUPPORTED; type: INDEPENDENT_REPORT
+Title: Browserbase Named to Forbes' Next Billion-Dollar Startups — Outset Capital
+URL: https://outsetcapital.com/blog/browserbase-forbes-2025
+Retrieved: 2026-10-15T12:02:51.714Z
+Reported publication: unknown
+
+COMPLETE CHRONOLOGICAL EVENT LOG
+All 58 timestamped event.message strings below are copied exactly from the retained JSON, in stored order. They include original errors, unsupported interpretations and subsequent corrections. No synthetic search, timing or agent-completion event has been added. Raw historical payloads are not expanded in this plaintext log; they remain unchanged in run-proof.json.
+
+EVENT 01 / 58
+Timestamp: 2026-10-15T11:37:55.877Z
+Event ID: 7bef53b3-2b52-48dd-bd45-eeea40259543
+Agent: system
+Type: investigation_started
+Historical recorded message (verbatim; not an authoritative present-day finding):
+Live Claude investigation started. Every research stage uses a separate model call.
+
+EVENT 02 / 58
+Timestamp: 2026-10-15T11:37:55.878Z
+Event ID: 62d17119-5bc5-4524-aff6-11efadbd153e
+Agent: scout
+Type: agent_started
+Historical recorded message (verbatim; not an authoritative present-day finding):
+The Scout started.
+
+EVENT 03 / 58
+Timestamp: 2026-10-15T11:39:08.718Z
+Event ID: 5d78efac-3c44-4ccb-a3bc-6298a02514c1
+Agent: scout
+Type: search_completed
+Historical recorded message (verbatim; not an authoritative present-day finding):
+2 web searches executed; 17 source URLs returned.
+
+EVENT 04 / 58
+Timestamp: 2026-10-15T11:39:08.722Z
+Event ID: 6c25852a-9116-40ed-817d-ac78aaf26da8
+Agent: scout
+Type: agent_completed
+Historical recorded message (verbatim; not an authoritative present-day finding):
+Browserbase is the best-funded pure-play cloud browser runtime for AI agents ($67.5M, $300M valuation, June 2025 Series B). Its strongest signal is Stagehand's 5.78M npm downloads in August 2026, indicating deep developer distribution. The principal commercial risk is that Steel's open-source self-hostable runtime and Kernel's sub-second, lower-cost sessions directly contest the assumption that managed infrastructure commands durable pricing power as inference costs fall.
+Recorded evidence IDs: scout-d40df0132fd7, scout-103aceeae461, scout-593bbf1b20d2, scout-547e702f7cc6, scout-c55f7b339c2a, scout-5d48eee4e531, scout-112a8d3a427e
+
+EVENT 05 / 58
+Timestamp: 2026-10-15T11:39:08.723Z
+Event ID: 43777ee0-971a-42c0-90f5-ed883bd2755e
+Agent: causal
+Type: agent_started
+Historical recorded message (verbatim; not an authoritative present-day finding):
+Causal Analyst started.
+
+EVENT 06 / 58
+Timestamp: 2026-10-15T11:39:38.435Z
+Event ID: 02694817-66b9-472b-a7c6-1b22d13b2a9b
+Agent: causal
+Type: agent_completed
+Historical recorded message (verbatim; not an authoritative present-day finding):
+Cheaper LLM inference expands the addressable universe of economically viable browser-automation tasks, creating first-order demand for cloud browser sessions. Browserbase captures that demand via Stagehand's SDK distribution, but open-source competitors structurally cap raw-session pricing, forcing Browserbase up the stack toward orchestration margin. The causal chain is partially supported; the weakest link is unverified SDK-to-revenue conversion.
+
+EVENT 07 / 58
+Timestamp: 2026-10-15T11:39:38.437Z
+Event ID: 2b01994d-7f4e-4b4a-b52f-5e85607a1e34
+Agent: hunter
+Type: agent_started
+Historical recorded message (verbatim; not an authoritative present-day finding):
+Company Hunter started.
+
+EVENT 08 / 58
+Timestamp: 2026-10-15T11:40:55.143Z
+Event ID: 17887d24-8f56-42d3-b616-58a3bc2356c5
+Agent: hunter
+Type: search_completed
+Historical recorded message (verbatim; not an authoritative present-day finding):
+2 web searches executed; 18 source URLs returned.
+
+EVENT 09 / 58
+Timestamp: 2026-10-15T11:40:55.146Z
+Event ID: 0e8bb109-e5ee-4843-89b9-d1c585fc25eb
+Agent: hunter
+Type: agent_recovery
+Historical recorded message (verbatim; not an authoritative present-day finding):
+Structured output recovery: INVALID_SCHEMA (findings.3.kind (invalid_enum_value)).
+
+EVENT 10 / 58
+Timestamp: 2026-10-15T11:41:40.629Z
+Event ID: 03e028ef-2d22-4ee5-9f44-0893d59624c4
+Agent: hunter
+Type: agent_completed
+Historical recorded message (verbatim; not an authoritative present-day finding):
+Browserbase is the best-funded pure-play managed cloud browser runtime for AI agents ($67.5M, $300M valuation). A Stripe official case study independently corroborates usage-based billing at hundreds-of-millions of session-minutes/month. Steel's accelerating open-source cadence (7,100+ stars, Launch Week v3) confirms raw-session commoditisation pressure. The durable thesis pivots on Stagehand SDK lock-in and higher-margin orchestration products, not session pricing. Enterprise names (Perplexity, Vercel, Salesforce, Visa) partially support retention, but gross margin and NRR remain unverified.
+Recorded evidence IDs: hunter-d77afe69cc3a, hunter-6b51f8dc6b0b, hunter-02ed7b572231, hunter-25db5414b0d8
+
+EVENT 11 / 58
+Timestamp: 2026-10-15T11:41:40.632Z
+Event ID: 01745cd1-eef7-40ee-968a-4c3b08f6c596
+Agent: hunter
+Type: company_discovered
+Historical recorded message (verbatim; not an authoritative present-day finding):
+Browserbase selected for the company deep dive.
+Recorded evidence IDs: hunter-d77afe69cc3a, hunter-6b51f8dc6b0b, hunter-25db5414b0d8, scout-d40df0132fd7, scout-103aceeae461, scout-593bbf1b20d2, scout-5d48eee4e531, scout-112a8d3a427e
+
+EVENT 12 / 58
+Timestamp: 2026-10-15T11:41:40.633Z
+Event ID: 0704098c-2c0a-44e4-a243-cfe880957883
+Agent: founder
+Type: agent_started
+Historical recorded message (verbatim; not an authoritative present-day finding):
+Founder Analyst started.
+
+EVENT 13 / 58
+Timestamp: 2026-10-15T11:41:40.635Z
+Event ID: a607fcab-ec5a-4e92-8419-c45f90840b24
+Agent: competitive
+Type: agent_started
+Historical recorded message (verbatim; not an authoritative present-day finding):
+Competitive Analyst started.
+
+EVENT 14 / 58
+Timestamp: 2026-10-15T11:42:54.376Z
+Event ID: 1aec8898-c059-4829-946b-0c50c71dc563
+Agent: competitive
+Type: search_completed
+Historical recorded message (verbatim; not an authoritative present-day finding):
+2 web searches executed; 16 source URLs returned.
+
+EVENT 15 / 58
+Timestamp: 2026-10-15T11:42:54.379Z
+Event ID: 97d4c775-584e-4e46-b5bf-724f59e18872
+Agent: competitive
+Type: agent_completed
+Historical recorded message (verbatim; not an authoritative present-day finding):
+Browserbase operates in a crowded, rapidly commoditising cloud-browser market. At least six credible direct competitors — Steel, Browserless, Hyperbrowser, Kernel, Anchor Browser, and TinyFish — each lead on a distinct axis (open source, speed, stealth, auth, pricing, or full-workflow). Raw-session pricing is converging: Steel's managed cloud is $0.08–$0.10/hr versus Browserbase's $0.10–$0.12/hr, with self-hosted Steel eliminating metering entirely. Browserbase's defensible position is not the runtime but the Stagehand SDK (5.78M downloads), SOC 2/HIPAA compliance, session observability, and a nascent orchestration layer (Director, Agent Identity, MCP). One contested benchmark suggests Browserbase task success rates of 40–50%, materially below enterprise-grade expectations — unverified but material if substantiated. The durable commercial thesis requires SDK-to-paid conversion and orchestration attach rates that remain unverified.
+Recorded evidence IDs: competitive-70f86571ae7d, competitive-aebdaca0cb7c, competitive-926d63b103ea
+
+EVENT 16 / 58
+Timestamp: 2026-10-15T11:42:56.103Z
+Event ID: 6c5d281d-ce9b-4e9e-9aa0-444c82c680ab
+Agent: founder
+Type: search_completed
+Historical recorded message (verbatim; not an authoritative present-day finding):
+2 web searches executed; 16 source URLs returned.
+
+EVENT 17 / 58
+Timestamp: 2026-10-15T11:42:56.109Z
+Event ID: efb73606-c496-4413-a347-26889fd1ec25
+Agent: founder
+Type: agent_completed
+Historical recorded message (verbatim; not an authoritative present-day finding):
+Paul Klein IV is the verified solo founder and CEO of Browserbase, founded January 2024. His career progression — Twilio (intern → Technical Lead, identity/login team, 2016–2020) → Co-Founder & CTO of Stream Club (2020–2021, acquired by Mux December 2021) → Engineering Manager then Director of Self-Service at Mux (2021–2024) → Founder of Browserbase (Jan 2024–present) — is corroborated across at least five independent public professional records. The headless-browser expertise is operationally traceable: Stream Club required running thousands of cloud browsers for live-streaming; Mux acquired that infrastructure; Klein then applied it to AI-agent use cases. Browserbase is a solo-founder company; no co-founder holds equity or a C-suite title. Two founding engineers (Dominic Saadi, Walker Griggs) are named in an independent analyst report but carry no co-founder designation.
+Recorded evidence IDs: founder-383f487fa250, founder-bf10ab594fc3, founder-c2712bd77cbb, founder-d6155543b240, founder-e8cfd0f9bb38, founder-802439034345, founder-3f013a006d5a, founder-cb9f77dacd58
+
+EVENT 18 / 58
+Timestamp: 2026-10-15T11:42:56.112Z
+Event ID: 5f044067-8219-4840-83a5-a562abdba720
+Agent: bull
+Type: agent_started
+Historical recorded message (verbatim; not an authoritative present-day finding):
+The Bull started.
+
+EVENT 19 / 58
+Timestamp: 2026-10-15T11:42:56.115Z
+Event ID: 60155bdc-3669-49ad-a6ac-4588aab1fb34
+Agent: bear
+Type: agent_started
+Historical recorded message (verbatim; not an authoritative present-day finding):
+The Bear started.
+
+EVENT 20 / 58
+Timestamp: 2026-10-15T11:43:26.244Z
+Event ID: 14f17210-5081-4d7e-9c0c-9b02c03af8b5
+Agent: bear
+Type: agent_completed
+Historical recorded message (verbatim; not an authoritative present-day finding):
+As The Bear, the single most material falsifiable challenge to the Browserbase thesis is that Stagehand's 5.78M npm downloads do not translate to meaningful paid revenue — the SDK functions as a permanently free distribution channel that anchors developers to Browserbase's infrastructure without generating durable gross-margin-positive revenue. If SDK distribution is the primary moat but free-to-paid conversion is near zero, the entire revised thesis collapses regardless of session volume or enterprise name-drops.
+
+EVENT 21 / 58
+Timestamp: 2026-10-15T11:43:53.516Z
+Event ID: 3a654d2d-7354-4a66-8c5d-9f6b4e024ac1
+Agent: bull
+Type: agent_completed
+Historical recorded message (verbatim; not an authoritative present-day finding):
+Browserbase is the best-funded pure-play cloud browser runtime for AI agents ($67.5M raised, $300M post-money valuation). The strongest bull case rests on three independently verified pillars: (1) Stripe-corroborated revenue at scale (hundreds of millions of session-minutes/month billed to hundreds of customers); (2) Stagehand SDK distribution moat (5.78M npm downloads, 25K+ GitHub stars) that creates switching cost independent of raw-session pricing; and (3) a founder with operationally traceable headless-browser expertise across Twilio → Stream Club → Mux → Browserbase. The revised thesis is not a managed-infrastructure pricing story but an SDK-distribution and agent-orchestration platform story. Steel's June 2026 repricing narrows the managed-session price gap to ≤$0.02/hr, confirming raw-session commoditisation is active. The durable advantage lies in Stagehand lock-in, SOC 2/HIPAA compliance, and a nascent orchestration layer (Director, Agent Identity, MCP) — products where open-source substitutes are absent. What must be true for this thesis to hold: Stagehand achieves meaningful free-to-paid conversion, enterprise contracts include minimum-commit ACVs, and orchestration products achieve material attach rates. These remain unverified.
+
+EVENT 22 / 58
+Timestamp: 2026-10-15T11:43:53.518Z
+Event ID: 3a113d34-0e2a-413e-b325-d6b8d6addd39
+Agent: verifier
+Type: verification_started
+Historical recorded message (verbatim; not an authoritative present-day finding):
+The Verifier is researching the Bull–Bear disagreement with fresh web search.
+
+EVENT 23 / 58
+Timestamp: 2026-10-15T11:43:53.520Z
+Event ID: a5f61485-3839-4db7-ad4e-1618e17b1e78
+Agent: verifier
+Type: agent_started
+Historical recorded message (verbatim; not an authoritative present-day finding):
+The Verifier started.
+
+EVENT 24 / 58
+Timestamp: 2026-10-15T11:44:46.948Z
+Event ID: fd55eb0e-e6eb-4490-8bad-961c1ccba6e9
+Agent: verifier
+Type: search_completed
+Historical recorded message (verbatim; not an authoritative present-day finding):
+2 web searches executed; 16 source URLs returned.
+
+EVENT 25 / 58
+Timestamp: 2026-10-15T11:44:46.953Z
+Event ID: f12fcf67-33a1-4207-bd0e-3b0267b64e2f
+Agent: verifier
+Type: agent_completed
+Historical recorded message (verbatim; not an authoritative present-day finding):
+The Bear's disputed claim — that Stagehand's SDK distribution (5.78M npm downloads, 25,000+ GitHub stars) as a durable commercial moat is falsifiable and untested — is PARTIALLY SUPPORTED. Fresh searches confirm Stagehand is MIT-licensed and explicitly marketed as free and usable without a Browserbase account, which structurally weakens the SDK-lock-in thesis. However, a Getlatka estimate ($4.4M ARR, July 2025) and a usagepricing.com disclosure (>$3M revenue, 1,000+ customers at Series B) indicate some free-to-paid conversion is occurring. No paid-cohort conversion rate, NRR, or enterprise ACV has been independently disclosed. The Stripe case study remains the strongest independent revenue signal but still reveals nothing about gross margin or SDK-driven conversion. The Bear's core falsifiability argument stands: the causal link from SDK downloads to paid revenue is unverified.
+Recorded evidence IDs: verifier-e3c389be8d46, verifier-00b830925026, verifier-ae8ccc799bf0
+
+EVENT 26 / 58
+Timestamp: 2026-10-15T11:44:46.957Z
+Event ID: 4283eac5-6d6f-4032-a70f-75137b1a9070
+Agent: bull
+Type: agent_revising
+Historical recorded message (verbatim; not an authoritative present-day finding):
+The Bull is revising the thesis using the Verifier’s findings.
+
+EVENT 27 / 58
+Timestamp: 2026-10-15T11:45:36.833Z
+Event ID: 1d912405-fb8e-4b19-aca0-a83e5d484f96
+Agent: bull
+Type: thesis_revised
+Historical recorded message (verbatim; not an authoritative present-day finding):
+CHANGED: The SDK-lock-in framing is partially retracted — Stagehand cannot mechanically enforce conversion and is correctly described as a distribution channel, not a switching-cost enforcer. The Model Gateway API-key consolidation is newly elevated as a genuine stickiness mechanism. WITHDRAWN: The claim that Stagehand's 5.78M downloads represent a 'moat independent of raw-session pricing' is withdrawn as stated; it survives only as a discovery and preference driver. UNCHANGED: Raw-session margin compression by Steel is empirically confirmed; Stripe revenue corroboration stands as the strongest independent commercial signal; gross margin, NRR, ACV floors, and orchestration attach remain unverified. THESIS STATUS: Survives as a MONITOR-grade hypothesis. The $300M valuation at ~$4–5M ARR implies a 60–75x ARR multiple that is only justifiable if orchestration and Model Gateway products achieve material attach and enterprise contracts include minimum-commit floors — neither is verified.
+
+EVENT 28 / 58
+Timestamp: 2026-10-15T11:45:36.837Z
+Event ID: 6098472d-e566-4c26-aab0-cf2c25b1bae0
+Agent: committee
+Type: agent_started
+Historical recorded message (verbatim; not an authoritative present-day finding):
+Investment Committee started.
+
+EVENT 29 / 58
+Timestamp: 2026-10-15T11:45:36.840Z
+Event ID: 71d001dd-fe25-450b-9c3a-3d3c0d65169f
+Agent: committee
+Type: agent_failed
+Historical recorded message (verbatim; not an authoritative present-day finding):
+Investigation token budget reached. Completed findings remain available.
+
+EVENT 30 / 58
+Timestamp: 2026-10-15T11:45:36.842Z
+Event ID: c13268ef-a597-426e-8bd2-d381a814f862
+Agent: system
+Type: investigation_failed
+Historical recorded message (verbatim; not an authoritative present-day finding):
+Investigation token budget reached. Completed findings remain available.
+
+EVENT 31 / 58
+Timestamp: 2026-10-15T12:01:37.027Z
+Event ID: fe19bd18-c81a-4902-9689-095e1986822d
+Agent: committee
+Type: assessment_invalidated
+Historical recorded message (verbatim; not an authoritative present-day finding):
+The prior assessment is being reviewed against a new evidence challenge.
+
+EVENT 32 / 58
+Timestamp: 2026-10-15T12:01:37.030Z
+Event ID: 49a20bd5-9b7f-4621-938d-bb38f30d978c
+Agent: verifier
+Type: verification_started
+Historical recorded message (verbatim; not an authoritative present-day finding):
+A second independent verification round is researching the challenged claims.
+
+EVENT 33 / 58
+Timestamp: 2026-10-15T12:01:37.034Z
+Event ID: e8a9a849-b949-4712-81f8-91ef013a0406
+Agent: verifier
+Type: agent_started
+Historical recorded message (verbatim; not an authoritative present-day finding):
+The Verifier started the bounded evidence challenge.
+
+EVENT 34 / 58
+Timestamp: 2026-10-15T12:02:51.704Z
+Event ID: fcde5ec0-c54d-4fc3-b44a-57b4a689fccc
+Agent: verifier
+Type: search_completed
+Historical recorded message (verbatim; not an authoritative present-day finding):
+2 fresh web searches executed; 20 source URLs returned.
+
+EVENT 35 / 58
+Timestamp: 2026-10-15T12:02:51.715Z
+Event ID: daa978e7-764e-4893-8be8-228a718cd974
+Agent: verifier
+Type: evidence_corrected
+Historical recorded message (verbatim; not an authoritative present-day finding):
+The Contrary Research report attributes Salesforce and Visa to Sauce Labs (competitor section), not to Browserbase. The prior evidence record's claim that 'Browserbase's notable customers include Salesforce and Visa' is a direct misread of the report's structure. Browserbase's named customers in the same report are Perplexity, Convergence, and Vercel only. Corroborated by verifier-new-contrary-1 and verifier-new-outset-1.
+
+EVENT 36 / 58
+Timestamp: 2026-10-15T12:02:51.718Z
+Event ID: 4548bbc6-a3e4-4f7c-9461-9f3723c647c5
+Agent: verifier
+Type: evidence_corrected
+Historical recorded message (verbatim; not an authoritative present-day finding):
+The 5.78M npm download figure is confirmed as cumulative-to-August-2026, not a monthly rate. The prior record did not clearly label this as cumulative; the challenge's ambiguity concern is valid. The figure itself is not fabricated, but the framing was insufficiently precise. Corroborated by verifier-new-npm-1 (1.69M weekly downloads implies cumulative, not monthly, for the 5.78M total) and verifier-new-taskade-1 (Taskade source text says 'in August 2026,' meaning the milestone reached in that month).
+
+EVENT 37 / 58
+Timestamp: 2026-10-15T12:02:51.721Z
+Event ID: 7e12f676-8697-428e-9ee7-909a5003243f
+Agent: verifier
+Type: evidence_corrected
+Historical recorded message (verbatim; not an authoritative present-day finding):
+Same as scout-593bbf1b20d2: the 5.78M figure is cumulative, sourced from Taskade which labels it as 'in August 2026' (i.e., the cumulative total as of that month). Prior record did not distinguish cumulative from monthly; challenge's framing concern is valid. Corroborated by verifier-new-npm-1.
+
+EVENT 38 / 58
+Timestamp: 2026-10-15T12:02:51.725Z
+Event ID: e3bbefce-76b3-49f1-987d-326fa53d5d12
+Agent: verifier
+Type: company_profile_reviewed
+Historical recorded message (verbatim; not an authoritative present-day finding):
+Company profile claims must be interpreted with the Verifier’s correction notes.
+
+EVENT 39 / 58
+Timestamp: 2026-10-15T12:02:51.727Z
+Event ID: 7b5952d6-9ceb-47c4-a419-41aa40071446
+Agent: verifier
+Type: verification_completed
+Historical recorded message (verbatim; not an authoritative present-day finding):
+The challenge's primary assertion is SUPPORTED: Salesforce and Visa are definitively attributed to Sauce Labs (a competitor) in the Contrary Research report, not to Browserbase — making hunter-25db5414b0d8 materially misleading as cited. Browserbase's named customers in the same report are Perplexity, Convergence, and Vercel only. Secondary assertions are PARTIALLY SUPPORTED: the Taskade 5.78M download figure is correctly labelled cumulative-in-August-2026 in the source itself, resolving the monthly/cumulative ambiguity in favour of cumulative, but the Taskade page publication date of 2026-10-15 is confirmed. Other challenged assertions (solo-founder cap table, session price vs. margin, self-hosting costs, ARR vs. valuation multiple) remain structurally valid qualifications but introduce no new contradictions to prior evidence — they are epistemological cautions already flagged as UNKNOWN or HYPOTHESIS.
+
+EVENT 40 / 58
+Timestamp: 2026-10-15T12:02:51.730Z
+Event ID: 67fb9e68-5816-47e2-9cb2-d6f9251dcc6e
+Agent: verifier
+Type: agent_completed
+Historical recorded message (verbatim; not an authoritative present-day finding):
+The challenge's primary assertion is SUPPORTED: Salesforce and Visa are definitively attributed to Sauce Labs (a competitor) in the Contrary Research report, not to Browserbase — making hunter-25db5414b0d8 materially misleading as cited. Browserbase's named customers in the same report are Perplexity, Convergence, and Vercel only. Secondary assertions are PARTIALLY SUPPORTED: the Taskade 5.78M download figure is correctly labelled cumulative-in-August-2026 in the source itself, resolving the monthly/cumulative ambiguity in favour of cumulative, but the Taskade page publication date of 2026-10-15 is confirmed. Other challenged assertions (solo-founder cap table, session price vs. margin, self-hosting costs, ARR vs. valuation multiple) remain structurally valid qualifications but introduce no new contradictions to prior evidence — they are epistemological cautions already flagged as UNKNOWN or HYPOTHESIS.
+
+EVENT 41 / 58
+Timestamp: 2026-10-15T12:02:51.733Z
+Event ID: d05e54c1-c3f0-49d2-b012-61c6b87447ce
+Agent: bull
+Type: agent_started
+Historical recorded message (verbatim; not an authoritative present-day finding):
+The Bull is revising its thesis after the source-level challenge.
+
+EVENT 42 / 58
+Timestamp: 2026-10-15T12:03:54.609Z
+Event ID: 9861c3da-d031-4ff3-bfda-ec0db7b28d43
+Agent: bull
+Type: thesis_revised
+Historical recorded message (verbatim; not an authoritative present-day finding):
+WITHDRAWN: Salesforce and Visa as Browserbase customers — definitively misattributed from the Contrary Research competitor section (Sauce Labs). Any prior strength claim referencing these names is removed. WITHDRAWN: The framing of 5.78M npm downloads as a monthly figure — confirmed cumulative-to-August-2026 by npm live data (1.69M weekly). WITHDRAWN: 'Switching-cost moat' framing for Stagehand — MIT licence and explicit 'no account needed' policy confirm voluntary conversion only. RETAINED: Raw-session margin compression by Steel is empirically confirmed. Stripe revenue corroboration remains the strongest independent commercial signal. Model Gateway API-key consolidation is a genuine documented switching cost mechanism. Revenue is real and triangulated at ~$4–5M ARR mid-2025. THESIS STATUS: MONITOR-grade hypothesis. The $300M valuation at ~68x ARR is only defensible if Model Gateway and Director/Agent Identity achieve material attach and enterprise contracts include minimum-commit floors — neither is verified.
+
+EVENT 43 / 58
+Timestamp: 2026-10-15T12:03:54.621Z
+Event ID: c77c87e4-20ea-4e62-93c7-96058bbad9aa
+Agent: system
+Type: assessment_resumed
+Historical recorded message (verbatim; not an authoritative present-day finding):
+Resuming the Investment Committee using the completed research and recorded verification.
+
+EVENT 44 / 58
+Timestamp: 2026-10-15T12:03:54.626Z
+Event ID: b323da87-d02a-488d-801e-8cb0354dcd07
+Agent: committee
+Type: agent_started
+Historical recorded message (verbatim; not an authoritative present-day finding):
+Investment Committee started its resumed assessment.
+
+EVENT 45 / 58
+Timestamp: 2026-10-15T12:04:54.331Z
+Event ID: 52de97a2-75e0-48ff-8608-a6e80761cfdb
+Agent: committee
+Type: agent_completed
+Historical recorded message (verbatim; not an authoritative present-day finding):
+After five research passes (scout, causal, hunter, founder, competitive, bear, verifier, bull revision), the Browserbase investment committee assessment reaches a MONITOR decision at MEDIUM confidence. Three claims from prior research are formally withdrawn or corrected: (1) Salesforce and Visa as Browserbase customers — CONTRADICTED, both belong to Sauce Labs in the Contrary Research report; (2) 5.78M npm downloads as a monthly figure — corrected to cumulative-to-August-2026; (3) Stagehand as a mechanical switching-cost moat — withdrawn, SDK is MIT-licensed with explicit 'no account needed' policy. What survives: real revenue triangulated at ~$4–5M ARR (mid-2025), genuine SDK developer distribution (~1.69M weekly downloads), Stripe-corroborated billing at scale, a credible founder with traceable domain expertise, and a documented multi-product stack (Model Gateway, Director, Agent Identity). What remains unverified and thesis-critical: free-to-paid conversion rate, gross margin on managed sessions, enterprise ACV floors, and orchestration-product attach rates. The $300M valuation at ~68x mid-2025 ARR is defensible only if those unverified links are material. Raw-session commoditisation by Steel is empirically confirmed. The thesis is a plausible platform story requiring verification, not a confirmed moat.
+
+EVENT 46 / 58
+Timestamp: 2026-10-15T12:04:54.336Z
+Event ID: b6e67369-0abe-440e-b4db-c1c7151f9fc8
+Agent: committee
+Type: investigation_completed
+Historical recorded message (verbatim; not an authoritative present-day finding):
+Investigation complete: MONITOR.
+
+EVENT 47 / 58
+Timestamp: 2026-10-15T12:08:08.613Z
+Event ID: f428c541-1709-421a-b304-fce8e9b1ba98
+Agent: system
+Type: assessment_invalidated
+Historical recorded message (verbatim; not an authoritative present-day finding):
+A source-quality audit requested a revised committee memo.
+
+EVENT 48 / 58
+Timestamp: 2026-10-15T12:08:08.614Z
+Event ID: a7240e34-2791-45a5-8463-f877f3e442af
+Agent: system
+Type: assessment_review_requested
+Historical recorded message (verbatim; not an authoritative present-day finding):
+External source-review notes supplied for the committee assessment.
+
+EVENT 49 / 58
+Timestamp: 2026-10-15T12:08:08.617Z
+Event ID: c185fa2a-5b16-4efb-9f9d-ea883dc3ca0e
+Agent: system
+Type: assessment_resumed
+Historical recorded message (verbatim; not an authoritative present-day finding):
+Resuming the Investment Committee using the completed research and recorded verification.
+
+EVENT 50 / 58
+Timestamp: 2026-10-15T12:08:08.620Z
+Event ID: cf661896-5d53-46a9-acd2-494a2f033588
+Agent: committee
+Type: agent_started
+Historical recorded message (verbatim; not an authoritative present-day finding):
+Investment Committee started its resumed assessment.
+
+EVENT 51 / 58
+Timestamp: 2026-10-15T12:09:14.080Z
+Event ID: c82b1f46-a04f-4731-b627-4d6ff09738d0
+Agent: committee
+Type: agent_completed
+Historical recorded message (verbatim; not an authoritative present-day finding):
+After four research passes — Bull, Bear, independent verification, and Bull revision — the Browserbase thesis is materially narrowed. Two claims are formally withdrawn: Salesforce and Visa as Browserbase customers (misattributed from the Sauce Labs section of the Contrary Research report) and the framing of 5.78M Stagehand downloads as a monthly figure (confirmed cumulative-to-August-2026). What survives: real revenue triangulated at ~$4–5M ARR mid-2025 (Stripe billing corroboration, usagepricing.com, Getlatka), genuine developer distribution via Stagehand (1.69M weekly downloads, MIT-licensed), a structurally active raw-session margin ceiling (Steel ≤$0.02/hr gap, self-hosted Steel at $0/hr), and a plausible but unverified platform story via Model Gateway API-key consolidation. The $300M valuation at ~68x mid-2025 ARR is only defensible if Model Gateway attach and enterprise minimum-commits are material — neither is verified. Decision: MONITOR, pending three concrete data points.
+
+EVENT 52 / 58
+Timestamp: 2026-10-15T12:09:14.084Z
+Event ID: 7c5c0fb3-6cf9-4f65-99e3-5e69d2cbe672
+Agent: committee
+Type: investigation_completed
+Historical recorded message (verbatim; not an authoritative present-day finding):
+Investigation complete: MONITOR.
+
+EVENT 53 / 58
+Timestamp: 2026-10-15T12:13:01.616Z
+Event ID: 04e0e679-840e-4a03-b532-1e75d352528a
+Agent: system
+Type: assessment_invalidated
+Historical recorded message (verbatim; not an authoritative present-day finding):
+A source-quality audit requested a revised committee memo.
+
+EVENT 54 / 58
+Timestamp: 2026-10-15T12:13:01.617Z
+Event ID: 01099859-e255-473f-bb8f-e7541aaceb95
+Agent: system
+Type: assessment_review_requested
+Historical recorded message (verbatim; not an authoritative present-day finding):
+External source-review notes supplied for the committee assessment.
+
+EVENT 55 / 58
+Timestamp: 2026-10-15T12:13:01.620Z
+Event ID: d7dceed1-e041-4f31-a9b1-ff913ba3de0d
+Agent: system
+Type: assessment_resumed
+Historical recorded message (verbatim; not an authoritative present-day finding):
+Resuming the Investment Committee using the completed research and recorded verification.
+
+EVENT 56 / 58
+Timestamp: 2026-10-15T12:13:01.624Z
+Event ID: 3339626a-ae8d-4145-ba50-4a534a574e1b
+Agent: committee
+Type: agent_started
+Historical recorded message (verbatim; not an authoritative present-day finding):
+Investment Committee started its resumed assessment.
+
+EVENT 57 / 58
+Timestamp: 2026-10-15T12:13:35.473Z
+Event ID: a0cf85c1-9aad-403f-a8a2-2943d547ac1b
+Agent: committee
+Type: agent_completed
+Historical recorded message (verbatim; not an authoritative present-day finding):
+Browserbase remains a credible early research subject. The founder's professional history is well corroborated, and the customer-attribution correction is verified. The core thesis is unproven: no evidence shows that cheaper inference gives Browserbase a durable advantage over Steel or Browserless. Stagehand is MIT-licensed and needs no account. SDK-to-paid conversion, realised margins, retention and current ARR are unknown. Salesforce and Visa claims are withdrawn. Decision: MONITOR, pending targeted diligence.
+
+EVENT 58 / 58
+Timestamp: 2026-10-15T12:13:35.479Z
+Event ID: 90745577-675c-4e97-8903-8e90261e6dc9
+Agent: committee
+Type: investigation_completed
+Historical recorded message (verbatim; not an authoritative present-day finding):
+Investigation complete: MONITOR.

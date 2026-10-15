@@ -23,7 +23,7 @@ import {
 import { AgentConstellation } from './Visuals';
 import { DomainIdentity } from './Identity';
 import { sourceName } from '../lib/source-intelligence';
-import { readable, dateLabel, sourceCount, uniqueSources } from '../lib/api';
+import { readable, dateLabel, sourceCount, uniqueSources, exportInvestigation } from '../lib/api';
 
 function Findings({
   run,
@@ -217,10 +217,7 @@ export default function InvestigationRoom({
             <Bookmark size={15} fill={investigation.watched ? 'currentColor' : 'none'} />
             {investigation.watched ? 'Saved' : 'Save research'}
           </button>
-          <button
-            className="button ghost"
-            onClick={() => window.open(`/api/investigations/${investigation.id}/export`, '_blank')}
-          >
+          <button className="button ghost" onClick={() => exportInvestigation(investigation)}>
             <Download size={15} />
             Export
           </button>

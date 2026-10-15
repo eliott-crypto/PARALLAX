@@ -38,7 +38,15 @@ import type {
   Evidence,
   Company,
 } from '../shared/types';
-import { api, post, dateLabel, readable, sourceCount } from './lib/api';
+import {
+  api,
+  post,
+  dateLabel,
+  readable,
+  sourceCount,
+  OUTPUT_MODE,
+  OUTPUT_MESSAGE,
+} from './lib/api';
 import { Brand, CausalMap, OrbitGraphic } from './components/Visuals';
 import InvestigationRoom from './components/InvestigationRoom';
 import ThemeBoardView from './components/ThemeBoard';
@@ -77,6 +85,7 @@ const SECTORS = [
 ];
 export default function App() {
   const [page, setPage] = useState<Page>('Themes');
+  const [outputArtifacts, setOutputArtifacts] = useState<Record<string, string>>({});
   const [boards, setBoards] = useState<ThemeBoard[]>([]);
   const [boardsLoading, setBoardsLoading] = useState(true);
   const [boardBusy, setBoardBusy] = useState(false);
@@ -169,12 +178,16 @@ export default function App() {
     boards.some((board) => board.status === 'running') ||
     !!status?.activeRuns;
   useEffect(() => {
-    if (!hasActiveResearch) return;
+    if (OUTPUT_MODE || !hasActiveResearch) return;
     const interval = setInterval(() => void refreshWorkspace(), 4_000);
     return () => clearInterval(interval);
   }, [hasActiveResearch, refreshWorkspace]);
   useEffect(() => {
     void refreshWorkspace();
+    if (OUTPUT_MODE)
+      void api<{ artifacts: Record<string, string> }>('/api/output')
+        .then((output) => setOutputArtifacts(output.artifacts))
+        .catch(() => {});
     const linkedRunId = new URLSearchParams(window.location.hash.slice(1)).get('investigation');
     const linkedThemeId = new URLSearchParams(window.location.hash.slice(1)).get('theme');
     if (new URLSearchParams(window.location.hash.slice(1)).get('view') === 'universe') {
@@ -235,7 +248,7 @@ export default function App() {
     window.history.replaceState(null, '', `#${params}`);
   }, [page, activeBoardId, selectedCandidateId, universeBoardId]);
   useEffect(() => {
-    if (!current || current.status !== 'running') return;
+    if (OUTPUT_MODE || !current || current.status !== 'running') return;
     let source: EventSource | undefined;
     let poll: ReturnType<typeof setInterval> | undefined;
     const receive = (run: Investigation) => {
@@ -376,6 +389,10 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
   function prepareResearch(signal?: Signal, target?: Company) {
+    if (OUTPUT_MODE) {
+      notify(OUTPUT_MESSAGE);
+      return;
+    }
     setQuery(
       signal
         ? `${signal.title}. Investigate the commercial opportunity${target ? ` for ${target.name} (${target.website})` : ''}, its supporting evidence, and the strongest counterargument.`
@@ -611,7 +628,13 @@ export default function App() {
             </button>
             <span className="connection-pill">
               <span className={`status-dot ${status?.configured ? 'connected' : ''}`} />
-              {!status ? 'Connecting…' : status.configured ? 'Claude connected' : 'Sample mode'}
+              {OUTPUT_MODE
+                ? 'Recorded public output'
+                : !status
+                  ? 'Connecting…'
+                  : status.configured
+                    ? 'Claude connected'
+                    : 'Sample mode'}
             </span>
             <button
               className="topbar-avatar"
@@ -623,6 +646,32 @@ export default function App() {
           </div>
         </header>
         <div className="main-content">
+          {OUTPUT_MODE && (
+            <div className="config-notice" style={{ marginBottom: 22 }}>
+              <Info size={17} />
+              <span>
+                <strong>Real research, published as a browsable snapshot.</strong> Explore sources,
+                the team’s reasoning and the Universe. Reordering and saving stay in this browser;
+                new Claude research runs in the local app.
+                {(outputArtifacts.pitch || outputArtifacts.proof) && (
+                  <span style={{ display: 'flex', gap: 16, marginTop: 8 }}>
+                    {outputArtifacts.pitch && (
+                      <a href={outputArtifacts.pitch} target="_blank" rel="noreferrer">
+                        Open pitch deck{' '}
+                        <ArrowUpRight size={12} style={{ verticalAlign: 'middle' }} />
+                      </a>
+                    )}
+                    {outputArtifacts.proof && (
+                      <a href={outputArtifacts.proof} download>
+                        Download run proof{' '}
+                        <ArrowUpRight size={12} style={{ verticalAlign: 'middle' }} />
+                      </a>
+                    )}
+                  </span>
+                )}
+              </span>
+            </div>
+          )}
           {current ? (
             <InvestigationRoom
               key={current.id}
@@ -650,7 +699,12 @@ export default function App() {
                     <h1>Behind every conviction.</h1>
                     <p>Inspect the full team, evidence and decision from each investigation.</p>
                   </div>
-                  <button className="button primary" onClick={() => prepareResearch()}>
+                  <button
+                    className="button primary"
+                    disabled={OUTPUT_MODE}
+                    title={OUTPUT_MODE ? OUTPUT_MESSAGE : undefined}
+                    onClick={() => prepareResearch()}
+                  >
                     <Plus size={16} />
                     New investigation
                   </button>
@@ -676,6 +730,7 @@ export default function App() {
                   activeBoardId={activeBoardId}
                   selectedCandidateId={selectedCandidateId}
                   loading={boardsLoading}
+                  readOnly={OUTPUT_MODE}
                   busy={boardBusy}
                   onSelect={(id) => {
                     setActiveBoardId(id);
@@ -833,7 +888,12 @@ export default function App() {
                           : 'Give nine independent agents a signal or a company. Watch them build, challenge and verify the investment case.'}
                       </p>
                       <div className="empty-actions">
-                        <button className="button primary" onClick={() => prepareResearch()}>
+                        <button
+                          className="button primary"
+                          disabled={OUTPUT_MODE}
+                          title={OUTPUT_MODE ? OUTPUT_MESSAGE : undefined}
+                          onClick={() => prepareResearch()}
+                        >
                           <Plus size={15} />
                           Start an investigation
                         </button>
@@ -1016,6 +1076,39 @@ export default function App() {
                 <p className="modal-footnote">
                   Bounded live research. Progress reflects actual agent execution.
                 </p>
+              </>
+            ) : modal === 'settings' && OUTPUT_MODE ? (
+              <>
+                <div className="modal-icon">
+                  <BookOpen size={24} />
+                </div>
+                <div className="eyebrow">PUBLIC RESEARCH OUTPUT</div>
+                <h2 id="modal-title">A real research snapshot.</h2>
+                <p>
+                  This public edition presents saved Claude executions, their cited sources and the
+                  actual investment debate. It does not run agents or connect to a private API key.
+                </p>
+                <div className="config-notice">
+                  <Info size={17} />
+                  <span>
+                    Explore themes, company details, the evidence Universe and full research
+                    history. Your priority order and saved research stay in this browser.
+                  </span>
+                </div>
+                <p style={{ marginTop: 20 }}>
+                  To run new investigations, use the full PARALLAX app with its server-side Claude
+                  connection.
+                </p>
+                <a
+                  className="button primary full-width"
+                  style={{ marginTop: 20 }}
+                  href="https://github.com/eliott-crypto/PARALLAX"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Open project and run instructions
+                  <ArrowUpRight size={15} />
+                </a>
               </>
             ) : modal === 'settings' ? (
               <>

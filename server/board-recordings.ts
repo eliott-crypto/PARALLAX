@@ -19,6 +19,10 @@ const agentIds = [
   'scout-emerging',
   'identity',
   'identity-extra',
+  'valuation-audit',
+  'bear-audit',
+  'ranking-audit',
+  'ranking-reviewed',
   'valuation',
   'bear',
   'ranking',
@@ -159,7 +163,7 @@ export function validateRecordedBoard(value: unknown): ThemeBoard {
       board.events.some((event) => event.agentId === agent.id && event.type === 'search');
     const priorAdversarialSearch =
       prefix === 'bear' &&
-      stage.id === 'bear-replacement' &&
+      ['bear-replacement', 'bear-audit'].includes(stage.id) &&
       board.agents.some(
         (agent) =>
           agent.id.startsWith('bear') && agent.status === 'completed' && searchedStage(agent),
@@ -208,6 +212,9 @@ export function validateRecordedBoard(value: unknown): ThemeBoard {
   if (admitted.length !== 5)
     throw new Error('Theme recording contains an unsupported historical valuation amount or date.');
   for (const candidate of board.candidates) {
+    const host = new URL(candidate.company.website).hostname.replace(/^www\./, '');
+    if (!board.evidence.some((entry) => new URL(entry.url).hostname.replace(/^www\./, '') === host))
+      throw new Error('Theme recording company identity has no retained official-domain source.');
     if (candidate.companyId !== candidate.company.id)
       throw new Error('Theme recording company identity does not match its assessment.');
     references(candidate.tailwind?.evidenceIds || []);

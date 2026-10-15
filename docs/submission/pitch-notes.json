@@ -1,0 +1,67 @@
+[
+  {
+    "slide": 1,
+    "notes": "PARALLAX is a hackathon prototype for emerging venture funds and angel investors. Present the live app alongside this deck. The intended customer benefit is a clearer next diligence decision, not a validated forecast of investment returns.",
+    "sources": [
+      "https://github.com/eliott-crypto/PARALLAX"
+    ]
+  },
+  {
+    "slide": 2,
+    "notes": "This is a proposed target customer and pain hypothesis. We have not supplied verified user interviews, customers, revenue, market size or time-saved results. The prototype focuses on turning a market belief into an evidenced research priority. Sources are product requirements and implementation, not a customer survey.",
+    "sources": [
+      "https://github.com/eliott-crypto/PARALLAX/blob/main/README.md"
+    ]
+  },
+  {
+    "slide": 3,
+    "notes": "Demonstrate Themes, choose a theme, and open a company. The preferred valuation ceiling is a preference, not a guarantee. A lower disclosed valuation alone does not establish relative value. The board may admit fewer than five when evidence is missing. Manual priority ordering stays distinct from the agent ranking. This screenshot reflects the actual prepared workspace, and the presenter must state its actual shortlist size.",
+    "sources": [
+      "https://github.com/eliott-crypto/PARALLAX/blob/main/shared/boards.ts",
+      "https://github.com/eliott-crypto/PARALLAX/blob/main/server/boards.ts",
+      "/Users/pascalboneu/Desktop/PARALLAX/docs/screenshots/overview.jpg"
+    ]
+  },
+  {
+    "slide": 4,
+    "notes": "Click Remove company claims in Universe. The independent lens retains supported INDEPENDENT_REPORT, RESEARCH_PUBLICATION and PUBLIC_PROFESSIONAL_RECORD records. Distance uses supported records divided by unique cited evidence IDs. Height uses the latest completed linked review confidence when present, otherwise the shortlist assessment. Horizontal direction is layout only. Ghost markers preserve the original position. The lens is a reversible deterministic scenario, not new live research or a probability of success.",
+    "sources": [
+      "https://github.com/eliott-crypto/PARALLAX/blob/main/src/lib/universe.ts",
+      "https://github.com/eliott-crypto/PARALLAX/blob/main/src/components/ThesisUniverse.tsx"
+    ]
+  },
+  {
+    "slide": 5,
+    "notes": "The diagram uses native editable PowerPoint shapes and connectors. There are nine distinct research roles. Bull revision is a feedback pass, not a tenth distinct role. Founder and Competitive run in parallel, then Bull and Bear run in parallel. Verifier performs fresh search. Orchestration persists actual provider usage, budgets, events and admitted evidence. Theme shortlist discovery is a separate smaller team with parallel scouts, price verification, adversarial review and ranking.",
+    "sources": [
+      "https://github.com/eliott-crypto/PARALLAX/blob/main/server/orchestrator.ts",
+      "https://github.com/eliott-crypto/PARALLAX/blob/main/server/store.ts",
+      "https://github.com/eliott-crypto/PARALLAX/blob/main/server/claude.ts"
+    ]
+  },
+  {
+    "slide": 6,
+    "notes": "Actual saved Claude execution: recordings/6b8771ef-7394-40b7-b702-222cbbad204f.json. Completed final decision MONITOR, confidence LOW. Input tokens303540 plus output44738 =348278 total provider tokens. 28 evidence records and22 distinct stored URLs. The later committee used claude-opus-5-5. A source-quality review flagged the customer-attribution problem, then a real Verifier pass retrieved sources and a Bull revision incorporated the correction. Preserve that distinction: the entire discovery was not an unassisted first-pass success. Original outputs, the token-budget interruption and later recovery remain in the trace. The cited Contrary source places Salesforce and Visa in the Sauce Labs competitive section, not Browserbase. The final memo withdraws the claim.",
+    "sources": [
+      "https://github.com/eliott-crypto/PARALLAX/blob/main/recordings/6b8771ef-7394-40b7-b702-222cbbad204f.json",
+      "https://github.com/eliott-crypto/PARALLAX/blob/main/docs/LIVE_RESEARCH_REVIEW.md",
+      "https://github.com/eliott-crypto/PARALLAX/blob/main/docs/RECORDED_INVESTIGATION.md"
+    ]
+  },
+  {
+    "slide": 7,
+    "notes": "These are current prototype controls, not a guarantee that every source is correct or that all current company information is complete. Valuation gates require sourced amounts and dates, reject unsupported candidate references and exclude proposed rounds, SAFE caps and asking prices. Research URLs must derive from retrieved search/citation protocol sources. Private credentials remain server-side. Professional investigation uses public work records. Source history is a history of agent-assigned claim assessments and corrected interpretations, not independently audited publisher accuracy or investment returns.",
+    "sources": [
+      "https://github.com/eliott-crypto/PARALLAX/blob/main/server/boards.ts",
+      "https://github.com/eliott-crypto/PARALLAX/blob/main/server/claude.ts",
+      "https://github.com/eliott-crypto/PARALLAX/blob/main/src/lib/source-intelligence.ts"
+    ]
+  },
+  {
+    "slide": 8,
+    "notes": "Pricing is a proposed hypothesis:299 USD per analyst per month, plus a team plan to be specified. No verified paying customers, contracted pilot funds, revenue, margin or willingness-to-pay evidence has been provided. The ask is an invitation to recruit five pilot funds. Usage limits and unit economics need measurement because long Claude investigations can be token-intensive. Success criteria are proposed pilot measures rather than achieved results. The demo app runs locally unless a separate external deployment is configured.",
+    "sources": [
+      "https://github.com/eliott-crypto/PARALLAX"
+    ]
+  }
+]

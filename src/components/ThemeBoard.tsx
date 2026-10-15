@@ -35,6 +35,7 @@ export interface ThemeBoardViewProps {
   activeBoardId?: string;
   selectedCandidateId?: string;
   loading?: boolean;
+  readOnly?: boolean;
   busy?: boolean;
   onSelect: (id?: string) => void;
   onCreate: (
@@ -312,6 +313,7 @@ function CandidateDetail({
   onInvestigate,
   onChallenge,
   onOpenResearch,
+  readOnly,
   busy,
 }: {
   board: ThemeBoard;
@@ -322,6 +324,7 @@ function CandidateDetail({
   onInvestigate: ThemeBoardViewProps['onInvestigate'];
   onChallenge: ThemeBoardViewProps['onChallenge'];
   onOpenResearch: ThemeBoardViewProps['onOpenResearch'];
+  readOnly?: boolean;
   busy?: boolean;
 }) {
   const evidence = board.evidence.filter(
@@ -551,7 +554,7 @@ function CandidateDetail({
             The next piece of proof
           </h3>
           <p>{candidate.nextProof}</p>
-          {onChallenge && (
+          {!readOnly && onChallenge && (
             <button
               disabled={busy || board.status === 'running'}
               className="tb-button small"
@@ -599,7 +602,12 @@ function CandidateDetail({
           </button>
           <button
             className="tb-button primary"
-            disabled={busy}
+            disabled={busy || readOnly}
+            title={
+              readOnly
+                ? 'New Claude investigations run in the local app. This is the published research output.'
+                : undefined
+            }
             onClick={() => {
               onClose();
               void onInvestigate(candidate, board);
@@ -625,6 +633,7 @@ export function ThemeBoardView(props: ThemeBoardViewProps) {
     activeBoardId,
     selectedCandidateId,
     loading,
+    readOnly,
     busy,
     onSelect,
     onCreate,
@@ -799,7 +808,7 @@ export function ThemeBoardView(props: ThemeBoardViewProps) {
                 <Globe2 size={16} />
                 Conviction Universe
               </button>
-              {board.status === 'running' && onCancel && (
+              {!readOnly && board.status === 'running' && onCancel && (
                 <button
                   className="tb-button tb-stop"
                   disabled={cancelling === board.id}
@@ -813,7 +822,7 @@ export function ThemeBoardView(props: ThemeBoardViewProps) {
                   {cancelling === board.id ? 'Stopping…' : 'Stop research'}
                 </button>
               )}
-              {canComplete && onComplete && (
+              {!readOnly && canComplete && onComplete && (
                 <button
                   className="tb-button mint"
                   disabled={busy}
@@ -823,7 +832,7 @@ export function ThemeBoardView(props: ThemeBoardViewProps) {
                   Complete shortlist
                 </button>
               )}
-              {board.status !== 'running' && onRescan && (
+              {!readOnly && board.status !== 'running' && onRescan && (
                 <button className="tb-button" disabled={busy} onClick={() => onRescan(board)}>
                   {board.status === 'draft' ? <Sparkles size={14} /> : <RefreshCw size={14} />}
                   {board.status === 'draft' ? 'Build Top 5' : 'Refresh research'}
@@ -838,12 +847,17 @@ export function ThemeBoardView(props: ThemeBoardViewProps) {
                 <Sparkles size={14} />
                 Your theme is ready
               </div>
-              <h3>Turn this thesis into a sourced Top 5.</h3>
+              <h3>
+                {readOnly
+                  ? 'No published shortlist for this theme yet.'
+                  : 'Turn this thesis into a sourced Top 5.'}
+              </h3>
               <p>
-                A Claude team will discover companies, verify their disclosed valuations and argue
-                about which deserve a closer look.
+                {readOnly
+                  ? 'This theme was saved as a draft. New Claude research runs in the full app, while this public edition preserves the actual published results.'
+                  : 'A Claude team will discover companies, verify their disclosed valuations and argue about which deserve a closer look.'}
               </p>
-              {onRescan && (
+              {!readOnly && onRescan && (
                 <button
                   className="tb-button primary"
                   style={{ marginTop: 20 }}
@@ -1163,7 +1177,12 @@ export function ThemeBoardView(props: ThemeBoardViewProps) {
                 valuations, and agents that challenge each other's investment case.
               </p>
             </div>
-            <button className="tb-button primary" onClick={() => setCreating(true)}>
+            <button
+              className="tb-button primary"
+              disabled={readOnly}
+              title={readOnly ? 'New themes and Claude research run in the local app.' : undefined}
+              onClick={() => setCreating(true)}
+            >
               <Plus size={16} />
               New theme
             </button>
@@ -1215,7 +1234,7 @@ export function ThemeBoardView(props: ThemeBoardViewProps) {
                               : 'Research available'}
                       </span>
                     </div>
-                    {item.status === 'running' && onCancel && (
+                    {!readOnly && item.status === 'running' && onCancel && (
                       <button
                         className="tb-button small tb-stop"
                         disabled={cancelling === item.id}
@@ -1239,7 +1258,14 @@ export function ThemeBoardView(props: ThemeBoardViewProps) {
                   </div>
                 </article>
               ))}
-              <button className="tb-new-theme" onClick={() => setCreating(true)}>
+              <button
+                className="tb-new-theme"
+                disabled={readOnly}
+                title={
+                  readOnly ? 'New themes and Claude research run in the local app.' : undefined
+                }
+                onClick={() => setCreating(true)}
+              >
                 <Plus size={23} />
                 <strong>Follow a new theme</strong>
                 <span>Start with a market you believe in. Let the agents test the companies.</span>
@@ -1266,6 +1292,7 @@ export function ThemeBoardView(props: ThemeBoardViewProps) {
           onInvestigate={onInvestigate}
           onChallenge={onChallenge}
           onOpenResearch={onOpenResearch}
+          readOnly={readOnly}
           busy={busy}
         />
       )}

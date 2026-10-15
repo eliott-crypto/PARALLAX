@@ -9,7 +9,8 @@
     "start": "tsx server/index.ts",
     "test": "node --import tsx --test tests/*.test.ts",
     "check": "tsc --noEmit",
-    "test:live": "node --import tsx scripts/verify-live.ts"
+    "test:live": "node --import tsx scripts/verify-live.ts",
+    "build:output": "node --import tsx scripts/build-output.ts"
   },
   "dependencies": {
     "@fontsource/manrope": "^5.3.0",

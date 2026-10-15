@@ -193,7 +193,7 @@ export function createApp(options: AppOptions = {}) {
       })
       .finally(() => {
         clearTimeout(timeout);
-        controllers.delete(board.id);
+        if (controllers.get(board.id) === controller) controllers.delete(board.id);
         if (board.status === 'running') {
           board.status = board.candidates.length ? 'partial' : 'failed';
           board.error ||= 'Shortlist research ended before a final ranking.';
@@ -346,7 +346,7 @@ export function createApp(options: AppOptions = {}) {
   app.post('/api/boards/:id/refresh', requireResearch, (req, res) => {
     const board = store.boards.get(String(req.params.id));
     if (!board) return res.status(404).json({ error: 'Theme not found.' });
-    if (board.status === 'running' || controllers.size >= 2)
+    if (board.status === 'running' || controllers.has(board.id) || controllers.size >= 2)
       return res
         .status(409)
         .json({ error: 'Research is already running. Wait or cancel a team first.' });
@@ -355,7 +355,7 @@ export function createApp(options: AppOptions = {}) {
   app.post('/api/boards/:id/complete', requireResearch, (req, res) => {
     const board = store.boards.get(String(req.params.id));
     if (!board) return res.status(404).json({ error: 'Theme not found.' });
-    if (board.status === 'running' || controllers.size >= 2)
+    if (board.status === 'running' || controllers.has(board.id) || controllers.size >= 2)
       return res.status(409).json({ error: 'Wait for the active research team to finish.' });
     if (
       !board.evidence.length ||
@@ -418,7 +418,7 @@ export function createApp(options: AppOptions = {}) {
     if (!board) return res.status(404).json({ error: 'Theme not found.' });
     const candidate = board.candidates.find((item) => item.companyId === req.params.companyId);
     if (!candidate) return res.status(404).json({ error: 'Shortlisted company not found.' });
-    if (board.status === 'running' || controllers.size >= 2)
+    if (board.status === 'running' || controllers.has(board.id) || controllers.size >= 2)
       return res.status(409).json({ error: 'Wait for the active research team to finish.' });
     if (candidate.researchId && controllers.has(candidate.researchId))
       return res.status(409).json({ error: 'This company already has a research team running.' });

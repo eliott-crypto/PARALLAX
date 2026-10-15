@@ -807,3 +807,38 @@ test('a later two-search identity helper skips the completed first identity pass
   ]);
   assert.equal(board.candidates.length, 5);
 });
+
+test('small disclosed valuations parse k, K, thousand and explicit USD notation without scaling errors', () => {
+  const small = { ...assessment(0), valuation: { ...assessment(0).valuation, amountUsd: 800000 } };
+  for (const amount of [
+    '$800k',
+    '$800K',
+    '$800 thousand',
+    'US$800k',
+    'US $800K',
+    'USD 800k',
+    'usd800K',
+    'USD $800,000',
+    '$0.8 million',
+  ]) {
+    const source = {
+      ...evidence(0),
+      claim: `TestCo 0 closed an equity round at a ${amount} valuation in May 2025.`,
+    };
+    assert.equal(
+      assembleCandidates({ evidence: [source] }, [company(0)], [small]).length,
+      1,
+      amount,
+    );
+  }
+  const wrongScale = {
+    ...evidence(0),
+    claim: 'TestCo 0 closed an equity round at a $800 valuation in May 2025.',
+  };
+  assert.equal(assembleCandidates({ evidence: [wrongScale] }, [company(0)], [small]).length, 0);
+  const notUSD = {
+    ...evidence(0),
+    claim: 'TestCo 0 closed an equity round at a C$800K valuation in May 2025.',
+  };
+  assert.equal(assembleCandidates({ evidence: [notUSD] }, [company(0)], [small]).length, 0);
+});

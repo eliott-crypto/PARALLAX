@@ -27,6 +27,10 @@ const agentNames: Record<BoardAgentId, string> = {
   'ranking-replacement': 'Replacement Ranking Committee',
   identity: 'Company Identity Resolver',
   'identity-extra': 'Additional Identity Resolver',
+  'valuation-audit': 'Valuation Source Audit',
+  'bear-audit': 'Adversarial Source Audit',
+  'ranking-audit': 'Final Ranking Audit',
+  'ranking-reviewed': 'Source Review Committee',
 };
 const coreAgentIds: BoardAgentId[] = [
   'scout-established',
@@ -78,7 +82,8 @@ export function createThemeBoard(
 
 function moneyAmounts(text: string): number[] {
   const amounts: number[] = [];
-  const pattern = /(?:US\s*)?\$\s*([\d,.]+)\s*(trillion|billion|million|bn|[bmt])?\b/gi;
+  const pattern =
+    /(?<![a-z])(?:US\s*\$|USD\s*\$?|\$)\s*([\d,.]+)\s*(trillion|billion|million|thousand|bn|[bmtk])?\b/gi;
   for (const match of text.matchAll(pattern)) {
     const number = Number(match[1].replaceAll(',', ''));
     const unit = match[2]?.toLowerCase();
@@ -89,7 +94,9 @@ function moneyAmounts(text: string): number[] {
           ? 1e9
           : unit === 'million' || unit === 'm'
             ? 1e6
-            : 1;
+            : unit === 'thousand' || unit === 'k'
+              ? 1e3
+              : 1;
     if (Number.isFinite(number)) amounts.push(number * multiplier);
   }
   return amounts;
@@ -107,7 +114,7 @@ function isNonPriceInstrument(text: string): boolean {
 }
 function valuationAmounts(text: string): number[] {
   if (isNonPriceInstrument(text)) return [];
-  const money = String.raw`(?:US\s*)?\$\s*[\d,.]+\s*(?:trillion|billion|million|bn|[bmt])?\b`;
+  const money = String.raw`(?<![a-z])(?:US\s*\$|USD\s*\$?|\$)\s*[\d,.]+\s*(?:trillion|billion|million|thousand|bn|[bmtk])?\b`;
   const term = String.raw`(?:valu(?:ation|ed)|post[ -]money|pre[ -]money)`;
   const patterns = [
     new RegExp(`${term}[^$.;]{0,45}${money}`, 'gi'),
