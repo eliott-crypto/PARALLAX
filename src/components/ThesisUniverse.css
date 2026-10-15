@@ -932,3 +932,119 @@
     transition: none;
   }
 }
+/* A tighter camera and larger marks keep small shortlists legible. */
+.universe-map {
+  min-height: 490px;
+  padding: 25px 0 5px;
+}
+.universe-map > svg {
+  aspect-ratio: 700/580;
+  min-height: 490px;
+  max-height: 600px;
+}
+.universe-company-node {
+  width: 156px;
+  gap: 6px;
+}
+.universe-company-node > span:not(.domain-identity) {
+  font-size: 13px;
+  max-width: 150px;
+  padding: 4px 7px;
+  line-height: 1.25;
+}
+.universe-company-node > small {
+  font-size: 11px;
+  padding: 2px 5px;
+  background: #152535e8;
+}
+.universe-company-node > .domain-identity {
+  outline-width: 2px;
+}
+.universe-map-heading > span:last-child {
+  font-size: 10px;
+}
+@media (min-width: 1600px) {
+  .universe-map > svg {
+    max-height: 650px;
+  }
+  .universe-map {
+    min-height: 560px;
+  }
+}
+@media (max-width: 1250px) and (min-width: 901px) {
+  .universe-layout {
+    grid-template-columns: 1fr;
+  }
+  .universe-map {
+    min-height: 500px;
+  }
+  .universe-map > svg {
+    min-height: 500px;
+    max-height: 590px;
+  }
+  .universe-proof-panel {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 19px 28px;
+  }
+  .universe-proof-eyebrow {
+    grid-column: 1/-1;
+  }
+  .universe-selected-company {
+    grid-column: 1;
+  }
+  .universe-valuation {
+    grid-column: 2;
+    grid-row: 2;
+    border: 0;
+    padding-top: 0;
+  }
+  .universe-proof-metrics {
+    grid-column: 1;
+  }
+  .universe-reason {
+    grid-column: 2;
+    grid-row: 3/5;
+  }
+  .universe-kill {
+    grid-column: 1;
+  }
+  .universe-primary {
+    grid-column: 2;
+  }
+  .universe-price-note {
+    grid-column: 1/-1;
+  }
+  .universe-proof-panel.has-review {
+    display: flex;
+  }
+}
+@media (max-width: 900px) and (min-width: 601px) {
+  .universe-map > svg {
+    min-height: 470px;
+    max-height: 580px;
+  }
+  .universe-map {
+    min-height: 470px;
+  }
+}
+@media (max-width: 600px) {
+  .universe-map {
+    height: 390px;
+    min-height: 390px;
+    padding-top: 20px;
+  }
+  .universe-map > svg {
+    width: 500px;
+    min-width: 500px;
+    height: 415px;
+    min-height: 415px;
+    max-height: none;
+  }
+  .universe-company-node > span:not(.domain-identity) {
+    font-size: 14px;
+  }
+  .universe-company-node > small {
+    font-size: 12px;
+  }
+}

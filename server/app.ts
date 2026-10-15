@@ -21,12 +21,21 @@ import { renderReport } from './report';
 import { loadRecordings } from './recordings';
 import { z } from 'zod';
 import { BoardRequestSchema, type ThemeBoard } from '../shared/boards';
-import { createThemeBoard, runThemeBoard } from './boards';
+import {
+  createThemeBoard,
+  runThemeBoard,
+  fillThemeBoardGaps,
+  replaceUnpricedCandidates,
+} from './boards';
+import { loadBoardRecordings } from './board-recordings';
 
 type Runner = typeof runInvestigation;
 type Scanner = typeof scanSignals;
 interface AppOptions {
   boardRunner?: typeof runThemeBoard;
+  boardFiller?: typeof fillThemeBoardGaps;
+  boardReplacer?: typeof replaceUnpricedCandidates;
+  boardRecordings?: ThemeBoard[];
   recordings?: Investigation[];
   finisher?: typeof completeAssessment;
   challenger?: typeof challengeAssessment;
@@ -49,6 +58,10 @@ export function createApp(options: AppOptions = {}) {
   const challenger = options.challenger ?? challengeAssessment;
   const scanner = options.scanner ?? scanSignals;
   const boardRunner = options.boardRunner ?? runThemeBoard;
+  const boardFiller = options.boardFiller ?? fillThemeBoardGaps;
+  const boardReplacer = options.boardReplacer ?? replaceUnpricedCandidates;
+  for (const board of options.boardRecordings ?? loadBoardRecordings())
+    if (!store.boards.has(board.id)) store.boards.set(board.id, board);
   if (!store.boards.size) {
     const titles = new Set<string>();
     for (const run of listRuns().filter((run) => run.mode !== 'sample')) {
@@ -160,14 +173,18 @@ export function createApp(options: AppOptions = {}) {
     const message = `data: ${JSON.stringify(board)}\n\n`;
     for (const response of boardSubscribers.get(board.id) ?? []) response.write(message);
   }
-  function startBoard(board: ThemeBoard) {
+  function startBoard(board: ThemeBoard, fillGaps = false, replaceUnpriced = false) {
     const controller = new AbortController();
     controllers.set(board.id, controller);
     usage.push(Date.now());
     board.status = 'running';
     saveBoard(board);
     const timeout = setTimeout(() => controller.abort(), 720_000);
-    void boardRunner(board, saveBoard, controller.signal)
+    void (replaceUnpriced ? boardReplacer : fillGaps ? boardFiller : boardRunner)(
+      board,
+      saveBoard,
+      controller.signal,
+    )
       .catch((error: unknown) => {
         if (board.status !== 'cancelled') {
           board.status = board.candidates.length ? 'partial' : 'failed';
@@ -281,16 +298,18 @@ export function createApp(options: AppOptions = {}) {
   app.post('/api/boards', requireResearch, (req, res) => {
     const parsed = BoardRequestSchema.safeParse(req.body);
     if (!parsed.success)
-      return res
-        .status(400)
-        .json({
-          error: 'Name the theme and describe the commercial change you want to investigate.',
-        });
+      return res.status(400).json({
+        error: 'Name the theme and describe the commercial change you want to investigate.',
+      });
     if (controllers.size >= 2)
       return res
         .status(409)
         .json({ error: 'Two research teams are already running. Wait or cancel one first.' });
-    const board = createThemeBoard(parsed.data.title, parsed.data.thesis);
+    const board = createThemeBoard(
+      parsed.data.title,
+      parsed.data.thesis,
+      parsed.data.preferredValuationMaxUsd,
+    );
     res.status(202).json(startBoard(board));
   });
   app.get('/api/boards/:id', (req, res) => {
@@ -332,6 +351,67 @@ export function createApp(options: AppOptions = {}) {
         .status(409)
         .json({ error: 'Research is already running. Wait or cancel a team first.' });
     res.status(202).json(startBoard(board));
+  });
+  app.post('/api/boards/:id/complete', requireResearch, (req, res) => {
+    const board = store.boards.get(String(req.params.id));
+    if (!board) return res.status(404).json({ error: 'Theme not found.' });
+    if (board.status === 'running' || controllers.size >= 2)
+      return res.status(409).json({ error: 'Wait for the active research team to finish.' });
+    if (
+      !board.evidence.length ||
+      board.candidates.length >= 5 ||
+      board.agents.some((agent) => agent.id === 'scout-replacement')
+    )
+      return res
+        .status(409)
+        .json({
+          error:
+            'This shortlist cannot use another gap-recovery pass. Refresh the theme for fresh research.',
+        });
+    const related = new Map<string, Investigation>();
+    for (const run of listRuns().filter(
+      (run) =>
+        run.mode !== 'sample' &&
+        run.status === 'completed' &&
+        run.company &&
+        (!board.preferredValuationMaxUsd || board.preferredValuationMaxUsd > 500_000_000),
+    )) {
+      const domain = new URL(run.company!.website).hostname.replace(/^www\./, '');
+      if (!related.has(domain)) related.set(domain, run);
+    }
+    board.relatedCompanies = [...related.values()].slice(0, 6).map((run) => run.company!);
+    const sources = new Map(board.evidence.map((entry) => [entry.id, entry]));
+    for (const run of [...related.values()].slice(0, 6)) {
+      const domain = new URL(run.company!.website).hostname.replace(/^www\./, '');
+      const official = run.evidence.find(
+        (entry) =>
+          entry.status === 'SUPPORTED' &&
+          new URL(entry.url).hostname.replace(/^www\./, '') === domain,
+      );
+      const financing = run.evidence
+        .filter(
+          (entry) =>
+            entry.status === 'SUPPORTED' &&
+            /valu(?:ation|ed)|post.money/i.test(`${entry.claim} ${entry.summary}`),
+        )
+        .slice(0, 3);
+      for (const entry of [official, ...financing]) if (entry) sources.set(entry.id, entry);
+    }
+    board.evidence = [...sources.values()];
+    if (related.size) board.events.push({
+      id: randomUUID(),
+      timestamp: new Date().toISOString(),
+      type: 'ranking',
+      message:
+        'Earlier completed investigations supplied historical company leads and financing sources. Their original retrieval dates are retained; the Gap Scout must independently recheck fit and pricing.',
+    });
+    res.status(202).json(
+      startBoard(
+        board,
+        true,
+        board.agents.some((agent) => agent.id === 'scout-gap'),
+      ),
+    );
   });
   app.post('/api/boards/:id/candidates/:companyId/research', requireResearch, (req, res) => {
     const board = store.boards.get(String(req.params.id));

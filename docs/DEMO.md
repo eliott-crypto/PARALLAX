@@ -1,51 +1,63 @@
-# PARALLAX — three-minute demonstration
+# PARALLAX — three-minute judges demo
 
-Start with `npm install && npm run build && npm start`, then open http://127.0.0.1:3001. The completed real investigation is bundled in the repository and needs no API key to replay. An API key enables fresh research; it stays in the ignored local environment file.
+**The customer:** a venture investor with a market thesis and limited diligence time. **The job:** find the most interesting niche private companies at disclosed financing valuations, then test the assumption that could make the shortlist wrong.
 
-## 0:00–0:30 — Start with a change
+## Prepare before the timer
 
-“Most investment tools start with a company you already know. PARALLAX starts with a change in the world and asks who might benefit.”
+Run `npm install && npm run build && npm start`, then open http://127.0.0.1:3001. Put `ANTHROPIC_API_KEY` in ignored `.env` or `.env.local` for live work; never paste it into the demo or browser.
 
-Open **Discover**, the single home for signals and company discovery. The initial three cards are explicitly labelled curated samples, with real sources. Open the inference-cost signal and its labelled causal links. Explain that cheaper reasoning may increase demand for execution infrastructure; the downstream links are hypotheses.
+Open **Themes**, use **New theme**, choose a specific market change and keep the default **$100M or below** preferred valuation if suitable. **Build my Top 5** starts real research that can take several minutes. Let the run finish before presenting. The preference is not a guarantee: only sourced closed-round valuations qualify, and a board can honestly return fewer than five. **Complete shortlist**, when offered, conducts bounded additional research; it does not fill slots with placeholders.
 
-On the prepared local workspace, the radar instead shows the latest real cybersecurity scan: Chainguard's October 14 announcements, with E2B and Microsandbox discovered as possible beneficiaries. Open a source and show the hypothesis labels. Then introduce the separate, completed Browserbase case to demonstrate deeper investigation. Do not imply that the cybersecurity signal produced the Browserbase case.
+There is currently **no bundled completed five-company theme recording**. A fresh checkout may show draft themes derived from existing research; a draft is not a finished comparison. The completed real Browserbase investigation under **Research** is bundled and works without a key. Use it for the recorded deep-research segment if a fresh company follow-up is unfinished. Keep it visibly separate from a different theme's candidates.
 
-## 0:30–1:10 — Open the real investigation
+Check the prepared board's source links and actual number of priced companies. If a company has a world-change chain, pick that one for the click-through. Do not imply missing fields or empty slots are complete.
 
-Open **Investigations**, then choose the completed Browserbase investigation. Its header says **Recorded investigation**, with the actual timestamps and sources. This is saved Claude execution, not simulated live activity.
+## 0:00–0:35 — A decision, not another report
 
-The room opens on **Findings**, with the decision and sources first. Open **Research team** to show the recorded Opus 5.5 model and provider usage under execution details. Select Founder Analyst and Company Hunter to inspect public professional research, real competitors and citation drilldown; these earlier outputs are preserved as history and may contain claims superseded by the final memo.
+“We help investors decide where to spend their next diligence hour. Start with a market you believe in; Claude builds a shortlist and tells you what could break it.”
 
-## 1:10–2:10 — The team corrects itself
+Open **Themes** and select the prepared theme. Show the ranked companies, their real identities, **Why now** and disclosed valuation dates. Say the actual result: “These are the companies that cleared the evidence filter.” If fewer than five qualified, point to the missing slots and explain why the team refused to invent prices.
 
-Open the debate and verification history inside **Research team** to show Bull and Bear. The original Bull argued for a developer-distribution moat; the Bear questioned whether distribution converts into durable paid demand.
+Show **Lowest valuation first** or move one company up with its arrow. Explain that this is your saved priority order, distinct from the agent ranking. The displayed price is a historical financing valuation, not shares available to buy today.
 
-The first Verifier found the official Stagehand FAQ: MIT-licensed, usable without a Browserbase account. The Bull revised its lock-in argument.
+## 0:35–1:10 — One company, one clear reason
 
-Click **Review corrections**. A second bounded source challenge found that Salesforce and Visa were named under competitor Sauce Labs in the cited Contrary article. The original customer claim is marked CONTRADICTED; the old record and actual correction event remain visible. It was fed into another real Bull revision.
+Click a company. Show **The overlooked niche** and **Why the world is moving in its favour**, when present: world change → customer need → company fit → weakest link. A sourced macro change does not prove the whole investment hypothesis.
 
-“Traceable sources are necessary, but a citation can still be misread. PARALLAX makes the disagreement and correction inspectable.”
+Open **Check valuation source** to show the actual publisher, date and claim. Return to **Is the valuation attractive?**, the strongest objection and **What would change your mind?**
 
-## 2:10–2:50 — A decision with explicit unknowns
+“The interesting question is not whether the company sounds good. It is what evidence would make us stop believing.”
 
-Open **Findings**. The final Opus 5.5 committee decision is **MONITOR**, with **LOW research confidence**. It removes unsupported numerical precision and states the missing data: SDK-to-paid conversion, realised margins, retention, present ARR and enterprise commitment terms.
+## 1:10–1:55 — The unexpected feature: remove the hype
 
-Show the three concrete diligence questions, working sources and Export. Choose **Save research** to put it under **Saved**. Rechecks run on demand; there is no claim of background scheduling.
+Open **Conviction Universe**. Rotate the map, then select a company. Explain the axes before touching the lens:
 
-## 2:50–3:00 — Close
+- Closer to the evidence core means a larger share of its cited evidence records is supported.
+- Higher means greater agent confidence, using the latest completed follow-up where available.
+- The horizontal direction is layout, not geography or a separate score.
 
-“PARALLAX is a research organisation that can challenge and revise its own thesis. The result is a better next research decision, with an evidence trail.”
+Click **Remove company claims**. The lens retains supported independent reports, research publications and public professional records. Companies with fewer surviving records move outward; ghost markers retain their original positions. Show the selected company's actual surviving record count and **THE NEXT PROOF**.
 
-## Live option and reliability
+“If the founder's own claims disappeared, which of our convictions would still have a foundation?”
 
-Use New investigation for fresh execution, or Scan for signals for a bounded two-agent scout/discovery pass. These consume Anthropic credits and take several minutes. The recorded run keeps the presentation reliable.
+This is an evidence counterfactual, not a live model rerun, an investment probability or proof that every independent source is accurate. Some companies may not move, which is a valid result.
 
-The saved trace includes a token-budget interruption and legitimate assessment recovery. It also identifies external source-quality review notes separately from Claude execution. Do not present it as a flawless first pass, an autonomous always-on monitor, audited financial due diligence, or a prediction of returns.
+## 1:55–2:40 — Agents do the next piece of work
 
-## The simplified interface
+Return to a company's details and show **Send agents to test this**, or **Run the nine-agent deep dive**. Launching either consumes API credits and will usually outlast the presentation. Show the live work briefly, then open a completed follow-up if prepared.
 
-- **Discover:** sourced changes, possible beneficiaries, and original articles. Company and publisher icons identify the actual domains used; recognizable names are shown for known publishers.
-- **Investigations:** active and completed research together. Findings lead; the complete agent graph and audit remain available under Research team.
-- **Saved:** research explicitly saved for later, with manual rechecks.
+In **Research**, show **Findings**, then **Research team**: specialist research, independent Bull/Bear arguments, fresh verification, a revised Bull case and committee assessment. These are separate Claude calls with actual events, searches and provider usage.
 
-Source history records agent-assigned claim statuses and reviewed interpretation corrections across actual runs. It does not imply publisher accuracy or investment returns. No realised outcome dataset exists yet, so historical signal performance is labelled unmeasured. FT and WSJ branding appears only if their domains actually occur in the cited research.
+For the bundled Browserbase case, show **Review corrections**. The original source named Salesforce and Visa under competitor Sauce Labs, not Browserbase. The record is marked contradicted; a real follow-up verification and Bull revision fed the final **MONITOR / LOW confidence** assessment. Earlier outputs remain visible as superseded history. The trace also retains an interrupted token budget and later assessment recovery; do not describe it as a flawless first pass.
+
+For a completed company-linked follow-up, return to that company to show its actual verdict and evidence. Its Universe position uses the new evidence and confidence. Its original shortlist rank is retained until **Refresh research** compares the whole theme again. The bundled Browserbase recording is not automatically evidence for an unrelated theme.
+
+## 2:40–3:00 — Close on the customer benefit
+
+“The shortlist gets you to a company quickly. The Universe exposes fragile conviction. Then a Claude team investigates the exact thing that could change your decision—and the evidence comes back into the workspace.”
+
+Show the next proof or kill criterion once more. Finish on the company, not a long report.
+
+## Accuracy notes for the presenter
+
+Rank is an ordinal research judgement, not a buy signal with validated investment returns. Disclosed valuation amount, financing date and pre/post-money basis matter; a funding amount, SAFE cap or proposed round is not an established priced valuation. No allocation or current entry price is implied. Source icons identify actual cited domains; FT or WSJ should appear only if those domains were retrieved. Source history records agent claim assessments and corrections; predictive source performance remains unmeasured. No autonomous always-on monitoring or external deployment is implied.

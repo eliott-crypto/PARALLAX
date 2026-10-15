@@ -252,6 +252,7 @@ export default function App() {
             ? 'Investigation complete. Your assessment is ready.'
             : `Investigation ${run.status}. Available findings are preserved.`,
         );
+        void refreshWorkspace();
       }
     };
     source = new EventSource(`/api/investigations/${current.id}/events`);
@@ -276,7 +277,7 @@ export default function App() {
       source?.close();
       if (poll) clearInterval(poll);
     };
-  }, [current?.id, current?.status, notify]);
+  }, [current?.id, current?.status, notify, refreshWorkspace]);
   function navigate(next: Page) {
     window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
     setPage(next);
@@ -290,10 +291,18 @@ export default function App() {
   }
   const receiveBoard = (board: ThemeBoard) =>
     setBoards((previous) => [board, ...previous.filter((item) => item.id !== board.id)]);
-  async function createBoard(title: string, thesis: string) {
+  async function createBoard(
+    title: string,
+    thesis: string,
+    preferredValuationMaxUsd = 100_000_000,
+  ) {
     setBoardBusy(true);
     try {
-      const board = await post<ThemeBoard>('/api/boards', { title, thesis });
+      const board = await post<ThemeBoard>('/api/boards', {
+        title,
+        thesis,
+        preferredValuationMaxUsd,
+      });
       receiveBoard(board);
       setActiveBoardId(board.id);
       setSelectedCandidateId(undefined);
@@ -567,8 +576,10 @@ export default function App() {
                 <small className="nav-description">{description}</small>
               </span>
               {name === 'Research' && active > 0 && <span className="nav-count">{active}</span>}
-              {name === 'Universe' && watched.length > 0 && (
-                <span className="nav-count">{watched.length}</span>
+              {name === 'Universe' && boards.some((board) => board.candidates.length > 0) && (
+                <span className="nav-count">
+                  {boards.reduce((total, board) => total + board.candidates.length, 0)}
+                </span>
               )}
             </button>
           ))}
@@ -669,6 +680,7 @@ export default function App() {
                   onSelect={(id) => {
                     setActiveBoardId(id);
                     setSelectedCandidateId(undefined);
+                    void refreshWorkspace();
                     if (!id) window.history.replaceState(null, '', window.location.pathname);
                   }}
                   onOpenResearch={(id) => {
@@ -685,6 +697,11 @@ export default function App() {
                       .catch((error) => notify(error.message))
                   }
                   onCreate={createBoard}
+                  onComplete={(board) =>
+                    post<ThemeBoard>(`/api/boards/${board.id}/complete`)
+                      .then(receiveBoard)
+                      .catch((error) => notify(error.message))
+                  }
                   onReorder={reorderBoard}
                   onResetOrder={(board) => resetBoardOrder(board.id)}
                   onRescan={refreshBoard}

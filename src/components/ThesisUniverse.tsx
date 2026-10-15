@@ -40,9 +40,9 @@ export function ThesisUniverse({
   const filter = selectedBoardId || localFilter;
   const [independentOnly, setIndependentOnly] = useState(false);
   const [selectedKey, setSelectedKey] = useState<string>();
-  const [rotation, setRotation] = useState({ yaw: -0.3, pitch: 0.24 });
+  const [rotation, setRotation] = useState({ yaw: -0.3, pitch: 0.6 });
   const initialZoom = () =>
-    typeof window !== 'undefined' && window.matchMedia('(max-width: 600px)').matches ? 0.7 : 1;
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 600px)').matches ? 0.7 : 1.05;
   const [zoom, setZoom] = useState(initialZoom);
   const [dragging, setDragging] = useState(false);
   const drag = useRef<{ x: number; y: number; yaw: number; pitch: number } | null>(null);
@@ -59,8 +59,8 @@ export function ThesisUniverse({
     const depth = point.y * Math.sin(rotation.pitch) + z * Math.cos(rotation.pitch);
     const perspective = 850 / (850 + depth);
     return {
-      x: 450 + x * perspective * zoom,
-      y: 289 + y * perspective * zoom,
+      x: 350 + x * perspective * zoom,
+      y: 270 + y * perspective * zoom,
       depth,
       scale: perspective,
     };
@@ -155,7 +155,7 @@ export function ThesisUniverse({
               </div>
               <div className="universe-map" style={{ touchAction: 'none' }}>
                 <svg
-                  viewBox="0 0 900 580"
+                  viewBox="0 0 700 580"
                   className={dragging ? 'is-dragging' : ''}
                   tabIndex={0}
                   role="group"
@@ -216,10 +216,10 @@ export function ThesisUniverse({
                     </linearGradient>
                   </defs>
                   <ellipse
-                    cx="450"
-                    cy="300"
-                    rx="390"
-                    ry="250"
+                    cx="350"
+                    cy="270"
+                    rx="330"
+                    ry="260"
                     fill="url(#universe-core)"
                     opacity=".2"
                   />
@@ -257,18 +257,18 @@ export function ThesisUniverse({
                     strokeWidth="1.5"
                     strokeDasharray="3 6"
                   />
-                  <circle cx="450" cy="289" r="70" fill="url(#universe-core)" />
+                  <circle cx="350" cy="270" r="70" fill="url(#universe-core)" />
                   <circle
-                    cx="450"
-                    cy="289"
+                    cx="350"
+                    cy="270"
                     r="18"
                     fill="#b3e3e9"
                     fillOpacity=".12"
                     stroke="#a4e6df"
                     strokeOpacity=".7"
                   />
-                  <path d="M443 289h14m-7-7v14" stroke="#c3faf1" strokeWidth="1.4" />
-                  <text x="450" y="329" textAnchor="middle" className="universe-core-label">
+                  <path d="M343 270h14m-7-7v14" stroke="#c3faf1" strokeWidth="1.4" />
+                  <text x="350" y="310" textAnchor="middle" className="universe-core-label">
                     EVIDENCE CORE
                   </text>
                   {projected.map((node) => {
@@ -323,7 +323,7 @@ export function ThesisUniverse({
                           <circle
                             cx={node.screen.x}
                             cy={node.screen.y}
-                            r={31 * node.screen.scale}
+                            r={37 * node.screen.scale}
                             fill={node.color}
                             fillOpacity=".08"
                             stroke={node.color}
@@ -331,10 +331,10 @@ export function ThesisUniverse({
                           />
                         )}
                         <foreignObject
-                          x={node.screen.x - 64}
-                          y={node.screen.y - 25}
-                          width="128"
-                          height="94"
+                          x={node.screen.x - 78}
+                          y={node.screen.y - 29}
+                          width="156"
+                          height="110"
                           style={{ overflow: 'visible' }}
                         >
                           <button
@@ -347,7 +347,7 @@ export function ThesisUniverse({
                             <DomainIdentity
                               url={node.candidate.company.website}
                               name={node.candidate.company.name}
-                              size={40}
+                              size={52}
                             />
                             <span>{node.candidate.company.name}</span>
                             <small>{money(node.candidate.valuation.amountUsd)} disclosed</small>
@@ -383,7 +383,7 @@ export function ThesisUniverse({
                   <button
                     aria-label="Reset map view"
                     onClick={() => {
-                      setRotation({ yaw: -0.3, pitch: 0.24 });
+                      setRotation({ yaw: -0.3, pitch: 0.6 });
                       setZoom(initialZoom());
                     }}
                   >

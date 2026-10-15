@@ -4,6 +4,19 @@ import type { AgentOutput, Company, Confidence, Evidence } from './types.js';
 /** A disclosed financing valuation is historical evidence, never a live offer. */
 export const BoardAssessmentSchema = z.object({
   companyId: z.string(),
+  nicheReason: z.string().max(400).optional(),
+  tailwind: z
+    .object({
+      change: z.string().max(400),
+      customerNeed: z.string().max(350),
+      companyFit: z.string().max(350),
+      weakestLink: z.string().max(350),
+      status: z
+        .enum(['VERIFIED', 'REASONED HYPOTHESIS', 'SPECULATIVE'])
+        .default('REASONED HYPOTHESIS'),
+      evidenceIds: z.array(z.string()).min(1),
+    })
+    .optional(),
   rank: z.number().int().min(1).max(5),
   rationale: z.string().max(700),
   valuation: z.object({
@@ -39,7 +52,21 @@ export interface BoardCandidate extends BoardAssessment {
   };
 }
 export type BoardAgentId =
-  'scout-established' | 'scout-emerging' | 'valuation' | 'bear' | 'ranking';
+  | 'scout-established'
+  | 'scout-emerging'
+  | 'identity'
+  | 'identity-extra'
+  | 'valuation'
+  | 'bear'
+  | 'ranking'
+  | 'scout-gap'
+  | 'valuation-gap'
+  | 'bear-gap'
+  | 'ranking-gap'
+  | 'scout-replacement'
+  | 'valuation-replacement'
+  | 'bear-replacement'
+  | 'ranking-replacement';
 export interface BoardAgent {
   id: BoardAgentId;
   name: string;
@@ -69,6 +96,10 @@ export interface ThemeBoard {
   createdAt: string;
   updatedAt: string;
   candidates: BoardCandidate[];
+  preferredValuationMaxUsd?: number;
+  unpricedCompanies?: Company[];
+  relatedCompanies?: Company[];
+  researchLeads?: { company: string; url: string; note: string }[];
   evidence: Evidence[];
   agents: BoardAgent[];
   events: BoardEvent[];
@@ -90,4 +121,5 @@ export interface ThemeBoard {
 export const BoardRequestSchema = z.object({
   title: z.string().trim().min(3).max(100),
   thesis: z.string().trim().min(10).max(700),
+  preferredValuationMaxUsd: z.number().positive().max(1000000000000).default(100000000),
 });

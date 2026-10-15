@@ -1087,3 +1087,328 @@
   background: #e3ad9415;
   color: #ffe6db;
 }
+.tb-workflow-note {
+  font-size: 11px;
+  color: #9faec1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 22px;
+  line-height: 1.6;
+}
+.tb-workflow-note svg {
+  color: #b3a4d8;
+}
+.tb-sort-actions {
+  justify-content: flex-end;
+}
+.tb-sort-reset {
+  font-size: 10px;
+  color: #c6b5f4;
+  padding: 7px 3px;
+}
+.tb-sort-note {
+  font-size: 10px;
+  line-height: 1.65;
+  color: #8d9fb8;
+  margin: -3px 0 14px;
+}
+@media (max-width: 760px) {
+  .tb-ranking-note {
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .tb-sort-actions {
+    justify-content: flex-start;
+    gap: 10px;
+  }
+  .tb-sort-actions .tb-button.small {
+    font-size: 10px;
+    padding: 8px 10px;
+  }
+  .tb-workflow-note {
+    font-size: 10px;
+    align-items: flex-start;
+  }
+}
+.tb-target-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-top: 20px;
+}
+.tb-target-row label {
+  margin: 0 !important;
+  font-size: 9px !important;
+  letter-spacing: 0.7px !important;
+}
+.tb-target-row select {
+  border: 1px solid #ffffff25;
+  background: #18212e;
+  color: #e2eaf4;
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 11px;
+  max-width: 180px;
+}
+.tb-thesis-preview {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.tb-research-brief {
+  margin-top: 9px;
+  font-size: 10px;
+  color: #9eaac1;
+}
+.tb-research-brief summary {
+  cursor: pointer;
+  color: #c1b1ed;
+  display: inline-block;
+  border-bottom: 1px dotted #b6a2e550;
+  padding-bottom: 2px;
+}
+.tb-research-brief > p {
+  font-size: 12px;
+  margin-top: 10px;
+  max-width: 700px;
+  line-height: 1.8;
+  color: #b6c1d2;
+}
+.tb-why-now > span {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  font-weight: 650;
+  color: #9bd8c6;
+  margin-right: 8px;
+}
+.tb-tailwind {
+  border: 1px solid #b9b5f33b;
+  background: linear-gradient(140deg, #9cb6ef0d, #a1e7d60a);
+  border-radius: 18px;
+  padding: 21px;
+  margin: 22px 0;
+}
+.tb-tailwind > .tb-eyebrow {
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+.tb-tailwind > .tb-eyebrow > span {
+  font-size: 8px;
+  color: #9facc1;
+  letter-spacing: 0.2px;
+  border: 1px solid #ffffff15;
+  border-radius: 20px;
+  padding: 4px 7px;
+  margin-left: auto;
+}
+.tb-tailwind-chain {
+  display: grid;
+  grid-template-columns: 1fr 15px 1fr 15px 1fr;
+  gap: 12px;
+  align-items: start;
+  margin-top: 20px;
+}
+.tb-tailwind-chain > div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+}
+.tb-tailwind-chain > div > svg {
+  color: #a8d8cf;
+  height: 20px;
+}
+.tb-tailwind-chain > svg {
+  color: #7c8eaa;
+  margin-top: 26px;
+}
+.tb-tailwind-chain strong {
+  font-size: 11px;
+  font-weight: 650;
+  color: #d8e6ee;
+  line-height: 1.5;
+}
+.tb-tailwind-chain p {
+  font-size: 11px;
+  line-height: 1.85;
+  color: #abbacc;
+}
+.tb-tailwind-weak {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  border-top: 1px solid #ffffff11;
+  margin-top: 19px;
+  padding-top: 15px;
+  color: #bfae8e;
+}
+.tb-tailwind-weak > svg {
+  margin-top: 3px;
+}
+.tb-tailwind-weak p {
+  font-size: 10px;
+  line-height: 1.8;
+  color: #bcb9b4;
+}
+.tb-tailwind-weak strong {
+  color: #d2bf9e;
+}
+.tb-tailwind > .tb-button {
+  margin-top: 14px;
+}
+.tb-unpriced {
+  margin-top: 24px;
+  padding: 23px;
+  border: 1px dashed #8aa0c329;
+  border-radius: 18px;
+  background: #7182ac05;
+}
+.tb-unpriced h3 {
+  font-size: 14px;
+  color: #bfcbdc;
+  font-weight: 550;
+}
+.tb-unpriced > div > p {
+  font-size: 10px;
+  color: #8d9cb2;
+  margin-top: 6px;
+}
+.tb-lead-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 17px;
+}
+.tb-lead-grid article {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #ffffff0f;
+  border-radius: 12px;
+  background: #ffffff03;
+  min-width: 0;
+}
+.tb-lead-grid article > div {
+  min-width: 0;
+  flex: 1;
+}
+.tb-lead-grid strong {
+  font-size: 11px;
+  display: block;
+  color: #c4d0e2;
+  font-weight: 550;
+}
+.tb-lead-grid span:not(.domain-identity) {
+  font-size: 9px;
+  color: #8c9bb3;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tb-lead-grid button,
+.tb-lead-grid a {
+  padding: 4px;
+  color: #9bafd1;
+}
+@media (max-width: 760px) {
+  .tb-tailwind-chain {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .tb-tailwind-chain > svg {
+    transform: rotate(90deg);
+    margin: 0 0 0 3px;
+  }
+  .tb-tailwind-chain > div {
+    display: grid;
+    grid-template-columns: 20px 1fr;
+    gap: 5px 10px;
+  }
+  .tb-tailwind-chain p {
+    grid-column: 2;
+  }
+  .tb-tailwind > .tb-eyebrow > span {
+    margin-left: 0;
+  }
+  .tb-lead-grid {
+    grid-template-columns: 1fr;
+  }
+  .tb-target-row label {
+    max-width: 160px;
+    line-height: 1.7;
+  }
+}
+.tb-tailwind-chain > div {
+  padding: 13px;
+  border: 1px solid #9ab7f020;
+  background: #a3b7f30a;
+  border-radius: 13px;
+  min-height: 150px;
+}
+.tb-tailwind-chain > div:nth-of-type(2) {
+  border-color: #a1e0c923;
+  background: #97d9c50b;
+}
+.tb-tailwind-chain > div:nth-of-type(3) {
+  border-color: #e6c17c25;
+  background: #e7bd780b;
+}
+.tb-tailwind-chain > div:nth-of-type(1) > svg {
+  color: #b5c8fa;
+}
+.tb-tailwind-chain > div:nth-of-type(2) > svg {
+  color: #9de1c9;
+}
+.tb-tailwind-citations {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 15px;
+}
+.tb-tailwind-citations button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #ffffff17;
+  border-radius: 8px;
+  padding: 6px 8px;
+  background: #ffffff05;
+  color: #bbc7db;
+  font-size: 9px;
+}
+.tb-tailwind-citations button:hover {
+  background: #ffffff0c;
+}
+.tb-lead-grid article {
+  align-items: flex-start;
+}
+.tb-lead-grid article > div > p {
+  font-size: 10px;
+  color: #96a7bf;
+  line-height: 1.65;
+  margin: 6px 0 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.tb-lead-grid article > a,
+.tb-lead-grid article > button {
+  margin-top: 4px;
+}
+@media (max-width: 760px) {
+  .tb-tailwind-chain > div {
+    min-height: 0;
+  }
+}

@@ -25,7 +25,7 @@ import {
   X,
 } from 'lucide-react';
 import type { BoardCandidate, ThemeBoard } from '../../shared/boards';
-import type { Evidence } from '../../shared/types';
+import type { Company, Evidence } from '../../shared/types';
 import { DomainIdentity } from './Identity';
 import { publicSourceDomain, sourceName } from '../lib/source-intelligence';
 import './ThemeBoard.css';
@@ -37,7 +37,11 @@ export interface ThemeBoardViewProps {
   loading?: boolean;
   busy?: boolean;
   onSelect: (id?: string) => void;
-  onCreate: (title: string, thesis: string) => Promise<unknown> | void;
+  onCreate: (
+    title: string,
+    thesis: string,
+    preferredValuationMaxUsd?: number,
+  ) => Promise<unknown> | void;
   onReorder: (boardId: string, companyIds: string[]) => Promise<unknown> | void;
   onInvestigate: (candidate: BoardCandidate, board: ThemeBoard) => Promise<unknown> | void;
   onEvidence: (ids: string[], evidence: Evidence[]) => void;
@@ -46,24 +50,25 @@ export interface ThemeBoardViewProps {
   onChallenge?: (board: ThemeBoard, candidate: BoardCandidate) => Promise<unknown> | void;
   onRescan?: (board: ThemeBoard) => Promise<unknown> | void;
   onCancel?: (board: ThemeBoard) => Promise<unknown> | void;
+  onComplete?: (board: ThemeBoard) => Promise<unknown> | void;
   onResetOrder?: (board: ThemeBoard) => Promise<unknown> | void;
 }
 
 const EXAMPLES = [
   {
-    title: 'AI browser infrastructure',
+    title: 'Under-the-radar opportunities',
     thesis:
-      'Find private startups building browsers and sandboxes for AI agents. Compare disclosed financing valuations, developer traction and defensibility.',
+      'Discover niche private startups across industrial tools, climate, healthcare, cybersecurity and specialist B2B software. Prefer disclosed valuations around $100M or below. Explain what is changing in the world, who now needs the product, and why this company benefits.',
   },
   {
-    title: 'Space infrastructure',
+    title: 'Industrial & climate',
     thesis:
-      'Find private startups building space infrastructure, from orbital data centres to launch and satellite platforms. Prioritise sourced, disclosed valuations and commercial evidence.',
+      'Find overlooked private startups solving specific industrial, energy or climate bottlenecks. Prefer disclosed valuations around $100M or below and explain the world change creating customer demand.',
   },
   {
-    title: 'Cybersecurity',
+    title: 'Healthcare tools',
     thesis:
-      'Find private cybersecurity startups protecting software supply chains and AI workloads. Compare disclosed financing valuations with verified customer and product signals.',
+      'Find niche private healthcare infrastructure and specialist software startups. Prefer disclosed valuations around $100M or below. Show the regulatory, demographic or workflow change that creates demand.',
   },
 ];
 
@@ -136,6 +141,7 @@ function ResearchProgress({ board }: { board: ThemeBoard }) {
   const running = board.agents.filter((agent) => agent.status === 'running');
   const searches = board.agents.reduce((total, agent) => total + agent.searches, 0);
   const lastEvent = board.events.at(-1);
+  const fillingGaps = board.agents.some((agent) => agent.id === 'scout-gap');
   return (
     <section className="tb-running" aria-live="polite">
       <div className="tb-eyebrow">
@@ -148,8 +154,9 @@ function ResearchProgress({ board }: { board: ThemeBoard }) {
           : 'Preparing the next research stage'}
       </h3>
       <p>
-        Two scouts search independently. A valuation specialist checks the price, a sceptic
-        challenges the thesis, and a final agent builds your shortlist.
+        {fillingGaps
+          ? 'The team is researching missing candidates instead of filling slots with guesses. Existing evidence is reused while a fresh scout searches for companies and disclosed valuations.'
+          : 'Independent scouts find companies. A valuation specialist checks the price, a sceptic challenges the thesis, and a final agent builds your shortlist.'}
       </p>
       <div className="tb-progress-stages">
         {board.agents.map((agent) => (
@@ -184,6 +191,7 @@ function CreateTheme({
 }) {
   const [title, setTitle] = useState('');
   const [thesis, setThesis] = useState('');
+  const [valuationCeiling, setValuationCeiling] = useState(100_000_000);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const titleRef = useRef<HTMLInputElement>(null);
@@ -218,7 +226,7 @@ function CreateTheme({
             setSubmitting(true);
             setError('');
             try {
-              await onCreate(title.trim(), thesis.trim());
+              await onCreate(title.trim(), thesis.trim(), valuationCeiling);
               onClose();
             } catch (reason) {
               setError(
@@ -237,7 +245,7 @@ function CreateTheme({
             id="tb-theme-title"
             maxLength={100}
             minLength={3}
-            placeholder="e.g. AI browser infrastructure"
+            placeholder="e.g. Under-the-radar opportunities"
             value={title}
             onChange={(event) => setTitle(event.target.value)}
             required
@@ -252,6 +260,19 @@ function CreateTheme({
             placeholder="Which companies benefit, and what would make their disclosed valuation compelling?"
             required
           />
+          <div className="tb-target-row">
+            <label htmlFor="tb-valuation-target">Preferred disclosed valuation</label>
+            <select
+              id="tb-valuation-target"
+              value={valuationCeiling}
+              onChange={(event) => setValuationCeiling(Number(event.target.value))}
+            >
+              <option value={100_000_000}>$100M or below</option>
+              <option value={250_000_000}>$250M or below</option>
+              <option value={500_000_000}>$500M or below</option>
+              <option value={1_000_000_000_000}>Any disclosed valuation</option>
+            </select>
+          </div>
           <div className="tb-examples">
             {EXAMPLES.map((example) => (
               <button
@@ -307,7 +328,8 @@ function CandidateDetail({
     (item) =>
       candidate.evidenceIds.includes(item.id) ||
       candidate.valuation.evidenceIds.includes(item.id) ||
-      Boolean(candidate.latestReview?.evidenceIds.includes(item.id)),
+      Boolean(candidate.latestReview?.evidenceIds.includes(item.id)) ||
+      Boolean(candidate.tailwind?.evidenceIds.includes(item.id)),
   );
   const sources = sourceList(evidence);
   return (
@@ -421,6 +443,74 @@ function CandidateDetail({
             </button>
           </p>
         </div>
+        {candidate.nicheReason && (
+          <div className="tb-detail-section">
+            <h3>The overlooked niche</h3>
+            <p>{candidate.nicheReason}</p>
+          </div>
+        )}
+        {candidate.tailwind && (
+          <section className="tb-tailwind">
+            <div className="tb-eyebrow">
+              <Globe2 size={14} />
+              Why the world is moving in its favour
+              <span>{candidate.tailwind.status.toLowerCase()}</span>
+            </div>
+            <div className="tb-tailwind-chain">
+              <div>
+                <Globe2 size={16} />
+                <strong>The world changes</strong>
+                <p>{candidate.tailwind.change}</p>
+              </div>
+              <ArrowRight size={15} />
+              <div>
+                <Target size={16} />
+                <strong>A customer needs</strong>
+                <p>{candidate.tailwind.customerNeed}</p>
+              </div>
+              <ArrowRight size={15} />
+              <div>
+                <DomainIdentity
+                  url={candidate.company.website}
+                  name={candidate.company.name}
+                  size={20}
+                />
+                <strong>{candidate.company.name} fits</strong>
+                <p>{candidate.tailwind.companyFit}</p>
+              </div>
+            </div>
+            <div className="tb-tailwind-weak">
+              <TriangleAlert size={13} />
+              <p>
+                <strong>Weakest link:</strong> {candidate.tailwind.weakestLink}
+              </p>
+            </div>
+            <div className="tb-tailwind-citations">
+              {sourceList(board.evidence, candidate.tailwind.evidenceIds)
+                .slice(0, 3)
+                .map((entry) => (
+                  <button key={entry.id} onClick={() => onEvidence([entry.id], board.evidence)}>
+                    <DomainIdentity
+                      url={entry.url}
+                      name={sourceName(entry.url, entry.publisher)}
+                      size={19}
+                    />
+                    <span>{sourceName(entry.url, entry.publisher)}</span>
+                    <ArrowUpRight size={10} />
+                  </button>
+                ))}
+            </div>
+            {candidate.tailwind.evidenceIds.length > 0 && (
+              <button
+                className="tb-button small"
+                onClick={() => onEvidence(candidate.tailwind!.evidenceIds, board.evidence)}
+              >
+                Trace this chain to sources
+                <ArrowUpRight size={12} />
+              </button>
+            )}
+          </section>
+        )}
         <div className="tb-detail-section">
           <h3>Why this company is on the list</h3>
           <p>{candidate.rationale}</p>
@@ -489,7 +579,12 @@ function CandidateDetail({
             style={{ marginTop: 15 }}
             onClick={() =>
               onEvidence(
-                [...candidate.evidenceIds, ...candidate.valuation.evidenceIds],
+                [
+                  ...candidate.evidenceIds,
+                  ...candidate.valuation.evidenceIds,
+                  ...(candidate.tailwind?.evidenceIds || []),
+                  ...(candidate.latestReview?.evidenceIds || []),
+                ],
                 board.evidence,
               )
             }
@@ -541,6 +636,7 @@ export function ThemeBoardView(props: ThemeBoardViewProps) {
     onChallenge,
     onRescan,
     onCancel,
+    onComplete,
     onResetOrder,
   } = props;
   const [creating, setCreating] = useState(false);
@@ -553,8 +649,46 @@ export function ThemeBoardView(props: ThemeBoardViewProps) {
     ? [...board.candidates].sort((a, b) => (a.manualRank ?? a.rank) - (b.manualRank ?? b.rank))
     : [];
   const selected = candidates.find((item) => item.company.id === selectedCompanyId);
-  const sourceDomains = board ? sourceList(board.evidence) : [];
+  const unpricedCompanies = (() => {
+    if (!board) return [];
+    const leads = board.unpricedCompanies?.length
+      ? board.unpricedCompanies
+      : candidates.length === 0
+        ? board.agents.flatMap((agent) => agent.output?.companies || [])
+        : [];
+    const unique = new Map<string, Company>();
+    for (const company of leads) {
+      if (candidates.some((candidate) => candidate.company.id === company.id)) continue;
+      if (!company.evidenceIds.some((id) => board.evidence.some((entry) => entry.id === id)))
+        continue;
+      const key = publicSourceDomain(company.website) || company.id;
+      if (!unique.has(key)) unique.set(key, company);
+    }
+    return [...unique.values()];
+  })();
+  const shortlistEvidenceIds = [
+    ...new Set(
+      candidates.flatMap((candidate) => [
+        ...candidate.evidenceIds,
+        ...candidate.valuation.evidenceIds,
+        ...(candidate.tailwind?.evidenceIds || []),
+        ...(candidate.latestReview?.evidenceIds || []),
+      ]),
+    ),
+  ];
+  const sourceEvidence = board
+    ? candidates.length
+      ? board.evidence.filter((item) => shortlistEvidenceIds.includes(item.id))
+      : board.evidence
+    : [];
+  const sourceDomains = sourceList(sourceEvidence);
   const manual = candidates.some((item) => item.manualRank !== undefined);
+  const canComplete =
+    board &&
+    ['partial', 'failed'].includes(board.status) &&
+    board.evidence.length > 0 &&
+    board.candidates.length < 5 &&
+    !board.agents.some((agent) => agent.id === 'scout-replacement');
   useEffect(() => {
     setSelectedCompanyId(selectedCandidateId || null);
     setActionError('');
@@ -591,10 +725,8 @@ export function ThemeBoardView(props: ThemeBoardViewProps) {
       setCancelling(null);
     }
   };
-  const move = async (index: number, direction: -1 | 1) => {
-    if (!board || index + direction < 0 || index + direction >= candidates.length) return;
-    const ids = candidates.map((item) => item.company.id);
-    [ids[index], ids[index + direction]] = [ids[index + direction], ids[index]];
+  const saveOrder = async (ids: string[]) => {
+    if (!board || reordering) return;
     setReordering(true);
     setActionError('');
     try {
@@ -604,6 +736,16 @@ export function ThemeBoardView(props: ThemeBoardViewProps) {
     } finally {
       setReordering(false);
     }
+  };
+  const move = async (index: number, direction: -1 | 1) => {
+    if (!board || index + direction < 0 || index + direction >= candidates.length) return;
+    const ids = candidates.map((item) => item.company.id);
+    [ids[index], ids[index + direction]] = [ids[index + direction], ids[index]];
+    await saveOrder(ids);
+  };
+  const sortByValuation = async () => {
+    const sorted = [...candidates].sort((a, b) => a.valuation.amountUsd - b.valuation.amountUsd);
+    await saveOrder(sorted.map((item) => item.company.id));
   };
   return (
     <div className="theme-workspace">
@@ -623,9 +765,21 @@ export function ThemeBoardView(props: ThemeBoardViewProps) {
                 <Layers3 size={14} /> Your research shortlist
               </div>
               <h1>{board.title}</h1>
-              <p>{board.thesis}</p>
+              <p className="tb-thesis-preview">{board.thesis}</p>
+              <details className="tb-research-brief">
+                <summary>Research brief</summary>
+                <p>{board.thesis}</p>
+              </details>
               <div className="tb-board-labels">
                 <BoardStatus board={board} />
+                {board.preferredValuationMaxUsd && (
+                  <span>
+                    <Target size={11} />
+                    {board.preferredValuationMaxUsd >= 1_000_000_000_000
+                      ? 'Any disclosed valuation'
+                      : `${valuationLabel(board.preferredValuationMaxUsd)} or below preferred`}
+                  </span>
+                )}
                 <span>
                   <ShieldCheck size={11} />
                   Disclosed valuations only
@@ -659,12 +813,18 @@ export function ThemeBoardView(props: ThemeBoardViewProps) {
                   {cancelling === board.id ? 'Stopping…' : 'Stop research'}
                 </button>
               )}
-              {board.status !== 'running' && onRescan && (
+              {canComplete && onComplete && (
                 <button
-                  className="tb-button"
+                  className="tb-button mint"
                   disabled={busy}
-                  onClick={() => onRescan(board)}
+                  onClick={() => onComplete(board)}
                 >
+                  <Sparkles size={14} />
+                  Complete shortlist
+                </button>
+              )}
+              {board.status !== 'running' && onRescan && (
+                <button className="tb-button" disabled={busy} onClick={() => onRescan(board)}>
                   {board.status === 'draft' ? <Sparkles size={14} /> : <RefreshCw size={14} />}
                   {board.status === 'draft' ? 'Build Top 5' : 'Refresh research'}
                 </button>
@@ -680,8 +840,8 @@ export function ThemeBoardView(props: ThemeBoardViewProps) {
               </div>
               <h3>Turn this thesis into a sourced Top 5.</h3>
               <p>
-                A five-agent team will discover companies, verify their disclosed valuations and
-                argue about which deserve a closer look.
+                A Claude team will discover companies, verify their disclosed valuations and argue
+                about which deserve a closer look.
               </p>
               {onRescan && (
                 <button
@@ -713,16 +873,39 @@ export function ThemeBoardView(props: ThemeBoardViewProps) {
               Top {candidates.length || 5} ·{' '}
               {manual ? 'Your priority order' : 'Agent research priority'}
             </strong>
-            <span>
-              {manual && onResetOrder ? (
-                <button onClick={() => onResetOrder(board)} style={{ color: '#c6b5f4' }}>
+            <div className="tb-actions tb-sort-actions">
+              {candidates.length > 1 && (
+                <button
+                  className="tb-button small"
+                  disabled={reordering || board.status === 'running'}
+                  onClick={() => void sortByValuation()}
+                  title="Sort historical disclosed financing valuations. A lower valuation does not imply better value."
+                >
+                  {reordering ? (
+                    <LoaderCircle className="tb-spin" size={12} />
+                  ) : (
+                    <ArrowDown size={12} />
+                  )}
+                  Lowest valuation first
+                </button>
+              )}
+              {manual && onResetOrder && (
+                <button
+                  className="tb-sort-reset"
+                  disabled={reordering || board.status === 'running'}
+                  onClick={() => onResetOrder(board)}
+                >
                   Restore agent order
                 </button>
-              ) : (
-                'Compare the price. Challenge the thesis. Make it yours.'
               )}
-            </span>
+            </div>
           </div>
+          {candidates.length > 1 && (
+            <p className="tb-sort-note">
+              Lower disclosed valuation does not imply better value. Compare the date, financing
+              terms and underlying business.
+            </p>
+          )}
           <div className="tb-rank-list">
             {candidates.map((candidate, index) => (
               <article className="tb-candidate" key={candidate.company.id}>
@@ -746,8 +929,25 @@ export function ThemeBoardView(props: ThemeBoardViewProps) {
                       </div>
                     </div>
                   </div>
-                  <p className="tb-candidate-why">{candidate.rationale}</p>
+                  {candidate.tailwind ? (
+                    <p className="tb-candidate-why tb-why-now">
+                      <span>Why now</span>
+                      {candidate.tailwind.change}
+                    </p>
+                  ) : (
+                    <p className="tb-candidate-why">{candidate.rationale}</p>
+                  )}
                   <div className="tb-candidate-signals">
+                    {board.preferredValuationMaxUsd &&
+                      board.preferredValuationMaxUsd < 1_000_000_000_000 && (
+                        <span
+                          className={`tb-tag ${candidate.valuation.amountUsd <= board.preferredValuationMaxUsd ? '' : 'amber'}`}
+                        >
+                          {candidate.valuation.amountUsd <= board.preferredValuationMaxUsd
+                            ? `Within ${valuationLabel(board.preferredValuationMaxUsd)} focus`
+                            : 'Larger comparison'}
+                        </span>
+                      )}
                     <span
                       className={`tb-tag ${candidate.priceSignal === 'RELATIVE VALUE' ? '' : 'amber'}`}
                     >
@@ -774,6 +974,7 @@ export function ThemeBoardView(props: ThemeBoardViewProps) {
                           ...candidate.evidenceIds,
                           ...candidate.valuation.evidenceIds,
                           ...(candidate.latestReview?.evidenceIds || []),
+                          ...(candidate.tailwind?.evidenceIds || []),
                         ]).length
                       }{' '}
                       sources
@@ -820,19 +1021,77 @@ export function ThemeBoardView(props: ThemeBoardViewProps) {
                 </div>
               </article>
             ))}
-            {Array.from({ length: Math.max(0, 5 - candidates.length) }, (_, index) => (
-              <div className="tb-empty-rank" key={`empty-${index}`}>
-                <span>{String(candidates.length + index + 1).padStart(2, '0')}</span>
+            {candidates.length === 0 && unpricedCompanies.length > 0 && (
+              <div className="tb-empty-rank">
+                <Radar size={20} />
                 <span>
-                  {board.status === 'draft'
-                    ? 'Start the agents to discover a company for this place'
-                    : board.status === 'running'
-                      ? 'Awaiting verified company and valuation evidence'
-                      : 'No additional company cleared the disclosed-valuation research filter'}
+                  {board.status === 'running'
+                    ? 'Real companies discovered. A cited valuation is required before they can be ranked.'
+                    : 'No company has cleared the valuation filter yet. Explore the sourced research leads below.'}
                 </span>
               </div>
-            ))}
+            )}
+            {Array.from(
+              {
+                length:
+                  candidates.length === 0 && unpricedCompanies.length > 0
+                    ? 0
+                    : Math.max(0, 5 - candidates.length),
+              },
+              (_, index) => (
+                <div className="tb-empty-rank" key={`empty-${index}`}>
+                  <span>{String(candidates.length + index + 1).padStart(2, '0')}</span>
+                  <span>
+                    {board.status === 'draft'
+                      ? 'Start the agents to discover a company for this place'
+                      : board.status === 'running'
+                        ? 'Awaiting verified company and valuation evidence'
+                        : 'No additional company cleared the disclosed-valuation research filter'}
+                  </span>
+                </div>
+              ),
+            )}
           </div>
+          {unpricedCompanies.length > 0 && (
+            <section className="tb-unpriced">
+              <div>
+                <h3>Companies discovered. Valuation not yet verified.</h3>
+                <p>
+                  Actual research leads, kept outside the ranking until the sourced valuation filter
+                  is cleared.
+                </p>
+              </div>
+              <div className="tb-lead-grid">
+                {unpricedCompanies.map((company) => (
+                  <article key={company.id}>
+                    <DomainIdentity url={company.website} name={company.name} size={30} />
+                    <div>
+                      <strong>{company.name}</strong>
+                      <span>{company.category}</span>
+                      <p>{company.description}</p>
+                    </div>
+                    {company.evidenceIds.length ? (
+                      <button
+                        aria-label={`See research for ${company.name}`}
+                        onClick={() => onEvidence(company.evidenceIds, board.evidence)}
+                      >
+                        <ArrowUpRight size={14} />
+                      </button>
+                    ) : (
+                      <a
+                        href={company.website}
+                        target="_blank"
+                        rel="noreferrer"
+                        aria-label={`Visit ${company.name}`}
+                      >
+                        <ArrowUpRight size={14} />
+                      </a>
+                    )}
+                  </article>
+                ))}
+              </div>
+            </section>
+          )}
           <div className="tb-underboard">
             <section className="tb-proof">
               <FlaskConical size={24} />
@@ -873,7 +1132,7 @@ export function ThemeBoardView(props: ThemeBoardViewProps) {
                   className="tb-button small"
                   onClick={() =>
                     onEvidence(
-                      board.evidence.map((item) => item.id),
+                      sourceEvidence.map((item) => item.id),
                       board.evidence,
                     )
                   }
@@ -909,32 +1168,10 @@ export function ThemeBoardView(props: ThemeBoardViewProps) {
               New theme
             </button>
           </div>
-          <section className="tb-overview">
-            <div>
-              <div className="tb-eyebrow">How your Top 5 gets made</div>
-              <h2>Scouts discover. Specialists challenge. You decide.</h2>
-              <p>
-                Five Claude agents compare companies, check disclosed valuations and expose the
-                strongest objection to each pick.
-              </p>
-            </div>
-            <div
-              className="tb-overview-stages"
-              aria-label="Scouts, valuation and challenge, then shortlist"
-            >
-              <span className="tb-stage-dot">
-                <Radar size={20} />
-              </span>
-              <ArrowRight size={14} />
-              <span className="tb-stage-dot">
-                <Swords size={20} />
-              </span>
-              <ArrowRight size={14} />
-              <span className="tb-stage-dot">
-                <Target size={20} />
-              </span>
-            </div>
-          </section>
+          <p className="tb-workflow-note">
+            <Swords size={13} />
+            Scouts discover. Specialists challenge. The team researches gaps instead of guessing.
+          </p>
           {actionError && (
             <div className="tb-error">
               <TriangleAlert size={15} />
