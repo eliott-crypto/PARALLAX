@@ -19,7 +19,7 @@
     "sources": [
       "https://github.com/eliott-crypto/PARALLAX/blob/main/shared/boards.ts",
       "https://github.com/eliott-crypto/PARALLAX/blob/main/server/boards.ts",
-      "/Users/pascalboneu/Desktop/PARALLAX/docs/screenshots/overview.jpg"
+      "/Users/pascalboneu/Desktop/PARALLAX/docs/screenshots/top5.jpg"
     ]
   },
   {
@@ -32,7 +32,7 @@
   },
   {
     "slide": 5,
-    "notes": "The diagram uses native editable PowerPoint shapes and connectors. There are nine distinct research roles. Bull revision is a feedback pass, not a tenth distinct role. Founder and Competitive run in parallel, then Bull and Bear run in parallel. Verifier performs fresh search. Orchestration persists actual provider usage, budgets, events and admitted evidence. Theme shortlist discovery is a separate smaller team with parallel scouts, price verification, adversarial review and ranking.",
+    "notes": "There are nine distinct research roles. Bull revision is a feedback pass, not a tenth distinct role. Founder and Competitive run in parallel, then Bull and Bear run in parallel. Verifier performs fresh search. Orchestration persists actual provider usage, budgets, events and admitted evidence. Theme shortlist discovery is a separate smaller team with parallel scouts, price verification, adversarial review and ranking.",
     "sources": [
       "https://github.com/eliott-crypto/PARALLAX/blob/main/server/orchestrator.ts",
       "https://github.com/eliott-crypto/PARALLAX/blob/main/server/store.ts",
@@ -59,7 +59,7 @@
   },
   {
     "slide": 8,
-    "notes": "Pricing is a proposed hypothesis:299 USD per analyst per month, plus a team plan to be specified. No verified paying customers, contracted pilot funds, revenue, margin or willingness-to-pay evidence has been provided. The ask is an invitation to recruit five pilot funds. Usage limits and unit economics need measurement because long Claude investigations can be token-intensive. Success criteria are proposed pilot measures rather than achieved results. The demo app runs locally unless a separate external deployment is configured.",
+    "notes": "Pricing is a proposed hypothesis:299 USD per analyst per month, plus a team plan to be specified. No verified paying customers, contracted pilot funds, revenue, margin or willingness-to-pay evidence has been provided. The ask is an invitation to recruit five pilot funds. Usage limits and unit economics need measurement because long Claude investigations can be token-intensive. Success criteria are proposed pilot measures rather than achieved results. The public GitHub Pages output provides a recorded research replay. Fresh Claude execution requires the separate Node server and a private API key.",
     "sources": [
       "https://github.com/eliott-crypto/PARALLAX"
     ]
