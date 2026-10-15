@@ -73,7 +73,9 @@ export default function InvestigationRoom({
   onComplete: () => void;
   onChallenge: () => void;
 }) {
-  const [selected, setSelected] = useState<AgentId>('scout');
+  const [selected, setSelected] = useState<AgentId>(() =>
+    investigation.status === 'completed' ? 'committee' : 'scout',
+  );
   const [tab, setTab] = useState<'workspace' | 'report'>('workspace');
   const run = investigation.agents.find((a) => a.id === selected);
   const agent = AGENTS.find((a) => a.id === selected)!;
@@ -394,6 +396,12 @@ export default function InvestigationRoom({
               )}
             </section>
           </div>
+          {!!investigation.reviewNotes?.length && (
+            <p className="muted text-xs">
+              Earlier debate and verification outputs are preserved below. The final committee
+              assessment supersedes claims qualified by the source-quality review.
+            </p>
+          )}
           <div className="debate-grid">
             <section className="panel argument bull">
               <div className="panel-heading">
@@ -500,7 +508,7 @@ export default function InvestigationRoom({
               <p>
                 {sample
                   ? 'Illustrative assessment based on a curated research sample.'
-                  : `Research completed ${dateLabel(investigation.completedAt)} · ${investigation.model ?? 'Claude'}`}
+                  : `Research completed ${dateLabel(investigation.completedAt)} · Research: ${investigation.model ?? 'Claude'} · Assessment: ${committee?.model ?? investigation.model ?? 'Claude'}`}
               </p>
             </div>
             <BrandMark />

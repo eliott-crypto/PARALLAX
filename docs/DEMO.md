@@ -8,11 +8,13 @@ Start with `npm install && npm run build && npm start`, then open http://127.0.0
 
 Show Signal Radar. The initial three cards are explicitly labelled curated samples, with real sources. Open the inference-cost signal and its labelled causal links. Explain that cheaper reasoning may increase demand for execution infrastructure; the downstream links are hypotheses.
 
+On the prepared local workspace, the radar instead shows the latest real cybersecurity scan: Chainguard's October 14 announcements, with E2B and Microsandbox discovered as possible beneficiaries. Open a source and show the hypothesis labels. Then introduce the separate, completed Browserbase case to demonstrate deeper investigation. Do not imply that the cybersecurity signal produced the Browserbase case.
+
 ## 0:30–1:10 — Open the real investigation
 
 Return to Overview and click **Replay completed investigation**. Its header says **Recorded investigation**, with the actual timestamps and sources. This is saved Claude execution, not simulated live activity.
 
-Select Founder Analyst and Company Hunter. Show public professional research, real competitors and citation drilldown. Then select Investment Committee to show the recorded Opus 5.5 model and actual provider usage.
+The room opens on Investment Committee. Show the recorded Opus 5.5 model and actual provider usage. Select Founder Analyst and Company Hunter to inspect public professional research, real competitors and citation drilldown; these earlier outputs are preserved as history and may contain claims superseded by the final memo.
 
 ## 1:10–2:10 — The team corrects itself
 

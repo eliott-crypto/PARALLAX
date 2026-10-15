@@ -549,6 +549,7 @@ export default function App() {
         <div className="main-content">
           {current ? (
             <InvestigationRoom
+              key={current.id}
               investigation={current}
               onBack={() => navigate('Investigations')}
               onEvidence={(ids) => openSources(ids, current.evidence)}
